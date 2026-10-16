@@ -173,16 +173,18 @@ body{overflow-x:clip}
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:8px 0 10px;max-width:100%}
 /* Progressive blur: stacked layers, each blurrier one fades out higher up, so the edge dissolves with no visible seam */
 .bar::before{display:none}
-.pb{position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;transform:translateX(-50%);
-  top:calc(-1 * env(safe-area-inset-top,0px));bottom:-56px;opacity:0;transition:opacity .3s ease;
+.pb{position:absolute;z-index:-1;pointer-events:none;left:50%;width:100vw;transform:translateX(-50%) translateZ(0);
+  top:calc(-1 * env(safe-area-inset-top,0px));bottom:-56px;}
+/* tint fades on its own layer; the blur layers never sit under a parent with opacity/mask (that is what made WebKit glitch until the first scroll) */
+.pb::before{content:"";position:absolute;inset:0;opacity:var(--p,0);
   background:linear-gradient(to bottom,
-    color-mix(in srgb,var(--bg) 58%,transparent) calc(100% - 64px),
-    color-mix(in srgb,var(--bg) 46%,transparent) calc(100% - 52px),
-    color-mix(in srgb,var(--bg) 30%,transparent) calc(100% - 40px),
-    color-mix(in srgb,var(--bg) 16%,transparent) calc(100% - 28px),
-    color-mix(in srgb,var(--bg) 6%,transparent) calc(100% - 14px),
-    transparent 100%)}
-.pb i{position:absolute;inset:0;display:block}
+      color-mix(in srgb,var(--bg) 58%,transparent) calc(100% - 64px),
+      color-mix(in srgb,var(--bg) 46%,transparent) calc(100% - 52px),
+      color-mix(in srgb,var(--bg) 30%,transparent) calc(100% - 40px),
+      color-mix(in srgb,var(--bg) 16%,transparent) calc(100% - 28px),
+      color-mix(in srgb,var(--bg) 6%,transparent) calc(100% - 14px),
+      transparent 100%)}
+  .pb i{position:absolute;inset:0;display:block;opacity:var(--p,0);will-change:opacity,transform;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .pb i:nth-child(1){-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
   -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 64px),transparent calc(100% - 40px));mask-image:linear-gradient(to bottom,#000 calc(100% - 64px),transparent calc(100% - 40px))}
 .pb i:nth-child(2){-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
@@ -193,7 +195,7 @@ body{overflow-x:clip}
   -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 28px),transparent calc(100% - 6px));mask-image:linear-gradient(to bottom,#000 calc(100% - 28px),transparent calc(100% - 6px))}
 .pb i:nth-child(5){-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);
   -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 16px),transparent 100%)}
-.bar.stuck .pb{opacity:1}
+
 .bar .tabs{position:static;margin:0;flex:0 1 auto;min-width:0;width:auto}
 .tbtn{flex:0 0 auto;align-self:stretch;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:15px;font-weight:600;color:var(--accent);
   padding:0 16px 0 10px;border-radius:999px;border:1px solid var(--glass-border);cursor:pointer;
@@ -354,8 +356,15 @@ body{overflow-x:clip}
   }
   mark();setInterval(mark,60000);
   var hdr=document.querySelector('.bar');
-  function stick(){hdr.classList.toggle('stuck',hdr.getBoundingClientRect().top<=(parseFloat(getComputedStyle(hdr).top)||0)+.5)}
-  window.addEventListener('scroll',stick,{passive:true});window.addEventListener('resize',stick);stick();
+  var pb=hdr.querySelector('.pb'),sen=document.createElement('div'),tk=0,RAMP=36;
+  sen.style.cssText='height:0;margin:0;padding:0;pointer-events:none';hdr.parentNode.insertBefore(sen,hdr);
+  function stick(){requestAnimationFrame(function(){tk=0;
+    var top=parseFloat(getComputedStyle(hdr).top)||0,d=top-sen.getBoundingClientRect().top;
+    var v=Math.max(0,Math.min(1,d/RAMP));v=v*v*(3-2*v);
+    pb.style.setProperty('--p',v.toFixed(3));hdr.classList.toggle('stuck',d>=0)})}
+  function req(){if(!tk){tk=1;stick()}}
+  window.addEventListener('scroll',req,{passive:true});window.addEventListener('resize',req);window.addEventListener('pageshow',req);
+  window.addEventListener('load',function(){req();requestAnimationFrame(req)});req();
 
   /* Swipe between weeks on touch devices */
   var sx=0,sy=0,st=0;
