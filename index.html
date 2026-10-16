@@ -52,6 +52,18 @@
 .sb-item .sub-left{margin:0 0 0 8px}
 .sub-type{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;color:var(--fg);background:var(--off);vertical-align:1px}
 .sub-form input[type=date]{-webkit-user-select:none;user-select:none}
+/* Upcoming-submissions banner layout */
+.submission-banner{padding:14px 14px 12px}
+.sb-head{margin-bottom:10px;font-size:16px}
+.sb-items{gap:8px}
+.sb-item{display:flex;flex-direction:column;gap:4px;padding:11px 13px;border-radius:14px;font-size:14px}
+.sb-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sb-date{font-size:13px;font-weight:700;color:var(--muted)}
+.sb-item .sub-left{margin:0;flex:0 0 auto;white-space:nowrap;font-size:12px;vertical-align:baseline}
+.sb-subj{font-size:16px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.sb-proj{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.sb-proj .sub-type{margin-left:8px}
+.alert-ok{width:100%;margin-top:4px}
 /* Submission tag spacing + vertically centred date field */
 .sub-day{font-size:11px;line-height:1.1;padding:4px 10px;margin:0;font-weight:700}
 .mob .day .sub-day{margin:0 0 10px}
@@ -611,7 +623,7 @@ body{overflow-x:clip}
     function sorted(){var a=read(),t=todayISO();return a.filter(function(x){return x.date&&x.subject&&x.project}).sort(function(a,b){var af=a.date>=t,bf=b.date>=t;if(af!==bf)return af?-1:1;return af?a.date.localeCompare(b.date):b.date.localeCompare(a.date)})}
     function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
     function jsonp(params){return new Promise(function(resolve,reject){if(!API_URL||API_URL.indexOf('PASTE_YOUR_')===0){reject(new Error('Google Sheets is not configured yet. Add your Apps Script web app URL in the HTML.'));return}var cb='dgSheetCb'+Date.now()+Math.random().toString(36).slice(2),script=document.createElement('script'),timer=setTimeout(function(){cleanup();reject(new Error('Google Sheets sync timed out. Check the deployment URL and internet connection.'))},15000);function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){window[cb]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=function(result){cleanup();if(result&&result.ok)resolve(result);else reject(new Error(result&&result.error||'Google Sheets request failed.'))};params.callback=cb;script.onerror=function(){cleanup();reject(new Error('Could not connect to Google Sheets.'))};script.src=API_URL+(API_URL.indexOf('?')>=0?'&':'?')+Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');document.head.appendChild(script)})}
-    function sync(){setReady(false);setStatus('Syncing with Google Sheets…');return jsonp({action:'list'}).then(function(r){if(!Array.isArray(r.data))throw new Error('Google Sheets returned invalid data.');save(r.data);setReady(true);setStatus('Synced with Google Sheets ✓');render();return true}).catch(function(e){setReady(false);setStatus('Not synced — adding submissions is disabled. '+e.message,true);render();return false})}
+    function sync(){setReady(false);setStatus('Syncing with Google Sheets…');return jsonp({action:'list'}).then(function(r){if(!Array.isArray(r.data))throw new Error('Google Sheets returned invalid data.');save(r.data);setReady(true);setStatus('Synced with Google Sheets ✓');render();maybeAlert();return true}).catch(function(e){setReady(false);setStatus('Not synced — adding submissions is disabled. '+e.message,true);render();return false})}
     var dateEl=document.getElementById('subDate');
     function daysLeft(iso){var p=iso.split('-'),t=new Date(),a=new Date(+p[0],+p[1]-1,+p[2]),b=new Date(t.getFullYear(),t.getMonth(),t.getDate());return Math.round((a-b)/86400000)}
     function urgency(n){return n<0?'past':n<=5?'high':n<=10?'med':'low'}
@@ -635,7 +647,7 @@ body{overflow-x:clip}
             jsonp({action:'delete',id:x.id}).then(function(){return sync()}).then(function(ok){if(ok)setStatus('Submission deleted and synced ✓')}).catch(function(e){setReady(false);setStatus('Delete failed. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})}});
         list.appendChild(row)});
       bannerItems.innerHTML='';
-      if(active.length){banner.classList.add('on');active.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n);item.innerHTML='<b>'+esc(dateLabel(x.date))+' · '+esc(x.subject)+'</b><span class="sub-left">'+leftText(n)+'</span><small>'+esc(x.project)+(x.type?' · '+esc(x.type):'')+'</small>';bannerItems.appendChild(item)})}else banner.classList.remove('on');
+      if(active.length){banner.classList.add('on');active.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n);item.innerHTML='<div class="sb-top"><span class="sb-date">'+esc(dateLabel(x.date))+'</span><span class="sub-left">'+leftText(n)+'</span></div><div class="sb-subj">'+esc(x.subject)+'</div><div class="sb-proj">'+esc(x.project)+(x.type?'<span class="sub-type">'+esc(x.type)+'</span>':'')+'</div>';bannerItems.appendChild(item)})}else banner.classList.remove('on');
       renderDayEntries(a)}
 
     /* Day detail popup: lists every submission due on the tapped day */
@@ -663,6 +675,25 @@ body{overflow-x:clip}
         var items=g[k];
         document.querySelectorAll('.mob .day[data-date="'+k+'"]').forEach(function(card){var ev=card.querySelector('.ev'),h=card.querySelector('h3');(ev||h).insertAdjacentElement('afterend',makeDayTag(items))});
         document.querySelectorAll('.desk thead th[data-date="'+k+'"]').forEach(function(th){var ev=th.querySelector('.ev'),dmEl=th.querySelector('.dm');(ev||dmEl).insertAdjacentElement('afterend',makeDayTag(items))})})}
+
+    /* Alert popup: shown each time the page opens, once submissions have synced */
+    var am=document.createElement('div');am.className='sub-modal';am.setAttribute('aria-hidden','true');
+    am.innerHTML='<section class="sub-panel" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle"><div class="sub-top"><h2 id="alertTitle">⚠️ Upcoming submissions</h2><button type="button" class="sub-close" aria-label="Close">×</button></div><p class="sub-help" id="alertSub"></p><div class="sub-list" id="alertList"></div><button type="button" class="sub-save alert-ok">Got it</button></section>';
+    document.body.appendChild(am);
+    function setAlert(v){am.classList.toggle('on',v);am.setAttribute('aria-hidden',String(!v))}
+    am.querySelector('.sub-close').addEventListener('click',function(){setAlert(false)});
+    am.querySelector('.alert-ok').addEventListener('click',function(){setAlert(false)});
+    am.addEventListener('click',function(e){if(e.target===am)setAlert(false)});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&am.classList.contains('on'))setAlert(false)});
+    var alerted=false;
+    function maybeAlert(){
+      if(alerted)return;
+      var up=sorted().filter(function(x){return x.date>=todayISO()});
+      alerted=true;if(!up.length)return;
+      var l=am.querySelector('#alertList');l.innerHTML='';
+      am.querySelector('#alertSub').textContent=up.length+(up.length>1?' submissions are':' submission is')+' coming up. Nearest first.';
+      up.forEach(function(x){var row=document.createElement('div');row.className='sub-row u-'+urgency(daysLeft(x.date));row.innerHTML=rowHTML(x,false);l.appendChild(row)});
+      setAlert(true)}
 
     /* Date: calendar picker only, no typing */
     function pickDate(){try{if(dateEl.showPicker)dateEl.showPicker()}catch(err){}}
