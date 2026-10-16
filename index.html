@@ -40,7 +40,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   radial-gradient(38vmax 38vmax at 95% 20%,var(--blob2),transparent 70%),
   radial-gradient(45vmax 45vmax at 40% 105%,var(--blob3),transparent 70%);opacity:.75}
 .wrap{max-width:1360px;margin:0 auto;min-width:0}
-header.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;margin:8px 4px 18px}
+header.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;margin:24px 4px 18px}
 h1{font-size:clamp(30px,6vw,40px);line-height:1.08;margin:0 0 6px;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
 .sub{margin:0;color:var(--muted);max-width:70ch;font-size:15px}
 .filter{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500;padding-left:6px}
@@ -241,7 +241,7 @@ body{overflow-x:clip}
 }
 /* Screen-edge rounded corners (matches the iPhone display curve); purely visual, never blocks touches */
 html::after{content:"";position:fixed;inset:0;z-index:2147483647;pointer-events:none;border-radius:var(--screen-r,47px);
-  box-shadow:0 0 0 60px #fff;-webkit-transform:translateZ(0);transform:translateZ(0)}
+  box-shadow:0 0 0 60px var(--bg);-webkit-transform:translateZ(0);transform:translateZ(0)}
 @media print{html::after{display:none}}
 @media print{body::before,.bar,.toast,.wnav{display:none!important}.panel{display:block!important}.desk{display:block!important}.mob{display:none!important}.scroll,.day{box-shadow:none;background:#fff}}
 </style>
