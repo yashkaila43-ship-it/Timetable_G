@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Division G Timetable</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="claude:viewport-fit-sides" content="cover"><meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 /* iOS 26 "Liquid Glass" styling: SF system fonts, system colors, translucent blurred glass surfaces. */
@@ -166,6 +166,14 @@ td.today-col{background:rgba(0,122,255,.05)}
 .sess.live{box-shadow:0 0 0 2px var(--accent),0 6px 20px color-mix(in srgb,var(--accent) 35%,transparent)}
 .sess.live .cr::after{content:"NOW";margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:1px 7px;border-radius:999px}
 /* v4: sticky bar + Today button */
+/* v5: paint the gradient on the root canvas so it also fills the status-bar / safe-area at the top */
+html{min-height:100%;background-color:var(--bg);
+  background-image:radial-gradient(40vmax 40vmax at 8% 6%,color-mix(in srgb,var(--blob1) 75%,transparent),transparent 70%),
+  radial-gradient(38vmax 38vmax at 95% 20%,color-mix(in srgb,var(--blob2) 75%,transparent),transparent 70%),
+  radial-gradient(45vmax 45vmax at 40% 105%,color-mix(in srgb,var(--blob3) 75%,transparent),transparent 70%);
+  background-attachment:fixed;background-repeat:no-repeat}
+body{background:transparent!important}
+body::before{display:none!important}
 /* no root padding: the page gradient now runs under the status bar */
 :root{padding-top:0;padding-bottom:0}
 html{scroll-padding-top:0}
