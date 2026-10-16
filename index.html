@@ -53,8 +53,8 @@
 .sub-type{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;color:var(--fg);background:var(--off);vertical-align:1px}
 .sub-form input[type=date]{-webkit-user-select:none;user-select:none}
 /* Submission tag spacing + vertically centred date field */
-.sub-day{font-size:13px;line-height:1.2;padding:7px 14px;margin:0}
-.mob .day .sub-day{margin:0 0 12px}
+.sub-day{font-size:11px;line-height:1.1;padding:4px 10px;margin:0;font-weight:700}
+.mob .day .sub-day{margin:0 0 10px}
 .mob .day .ev:has(+.sub-day){margin-bottom:8px}
 .mob .day h3+.sub-day{margin-top:2px}
 .grid thead th .sub-day{margin:8px 0 2px}
@@ -369,7 +369,7 @@ body{overflow-x:clip}
   .bar{gap:6px}
   .bar .tabs{gap:3px;padding:4px}
   /* mobile: no dates, two weeks visible at a time, swipe for the rest */
-  .bar .tabs{scroll-snap-type:x mandatory;overscroll-behavior-x:contain}
+  .bar .tabs{scroll-snap-type:x mandatory;scroll-padding-inline:4px;overscroll-behavior-x:contain;padding-inline:4px}
   .tab{flex:0 0 calc((100% - 3px)/2);min-width:0;padding:11px 6px;white-space:nowrap;scroll-snap-align:start;font-size:15px}
   .tab small,.tab .dl,.tab .ds{display:none}
   #todayBtn{padding:0 12px 0 7px;gap:6px;font-size:14px}
@@ -433,7 +433,7 @@ body{overflow-x:clip}
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
     tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
-      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:t.offsetLeft-tc.offsetLeft-4,behavior:animate?'smooth':'auto'})}
+      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,t.offsetLeft-tc.offsetLeft-tc.clientLeft-4),behavior:animate?'smooth':'auto'})}
       });
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
       if(on&&changed&&animate){p.classList.add(dir)}
