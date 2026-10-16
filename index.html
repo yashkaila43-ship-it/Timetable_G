@@ -396,8 +396,9 @@ body{overflow-x:clip}
   .bar{gap:6px}
   .bar .tabs{gap:3px;padding:4px}
   /* mobile: no dates, two weeks visible at a time, swipe for the rest */
-  .bar .tabs{scroll-snap-type:x mandatory;scroll-padding-inline:4px;overscroll-behavior-x:contain;padding-inline:4px}
-  .tab{flex:0 0 100%;min-width:0;padding:9px 4px;white-space:nowrap;scroll-snap-align:start;font-size:14px}
+  .bar .tabs{overscroll-behavior-x:contain;padding-inline:4px}
+  .tab{pointer-events:none}
+  .tab{flex:0 0 100%;min-width:0;padding:9px 4px;white-space:nowrap;font-size:14px}
   .bar{gap:5px}.bar .fbtn{flex:0 0 auto}.tdot{min-width:24px;height:24px;font-size:12px}
   .tab small,.tab .dl,.tab .ds{display:none}
   #todayBtn{padding:0 10px 0 6px;gap:5px;font-size:13px}
@@ -456,10 +457,12 @@ body{overflow-x:clip}
   });
 
   /* Week switching */
+  function barPos(tc,w){return N>1?(w-1)/(N-1)*Math.max(0,tc.scrollWidth-tc.clientWidth):0}
+  var progScroll=0,fromBar=false;
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
     tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
-      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,tc.scrollLeft+t.getBoundingClientRect().left-tc.getBoundingClientRect().left-tc.clientLeft-4),behavior:animate?'smooth':'auto'})}
+      if(on&&!fromBar){var tc=t.parentNode;if(tc&&tc.scrollTo){progScroll=Date.now();tc.scrollTo({left:barPos(tc,w),behavior:animate?'smooth':'auto'})}}
       });
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
       if(on&&changed&&animate){p.classList.add(dir)}
@@ -468,11 +471,24 @@ body{overflow-x:clip}
     if(animate){var tb=document.querySelector('.tabs');var top=tb.getBoundingClientRect().bottom;if(top<0)window.scrollTo({top:0,behavior:'smooth'})}
   }
   tabs.forEach(function(t){
-    t.addEventListener('click',function(){show(+t.dataset.w,true)});
+    t.addEventListener('click',function(){if(window.innerWidth<900)return;show(+t.dataset.w,true)});
     t.addEventListener('keydown',function(e){
       if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();var n=cur+(e.key==='ArrowRight'?1:-1);show(n,true);var nt=tabs[Math.max(0,Math.min(N-1,n-1))];nt&&nt.focus()}});
   });
 
+
+  /* Mobile: swiping the week bar switches the week (no tapping) */
+  (function(){
+    var bar=document.querySelector('.tabs'),tm=0;
+    bar.addEventListener('scroll',function(){
+      if(window.innerWidth>=900)return;
+      clearTimeout(tm);
+      tm=setTimeout(function(){
+        var max=Math.max(1,bar.scrollWidth-bar.clientWidth),w=Math.round(bar.scrollLeft/max*(N-1))+1;
+        if(w!==cur){fromBar=true;show(w,true);fromBar=false}
+        var tgt=barPos(bar,w);if(Math.abs(bar.scrollLeft-tgt)>1){progScroll=Date.now();bar.scrollTo({left:tgt,behavior:'smooth'})}
+      },140)},{passive:true});
+  })();
   /* Today / now */
   function todayWeek(){var t=new Date();for(var i=0;i<N;i++){var d=panels[i].querySelectorAll('.desk thead th[data-date]');for(var k=0;k<d.length;k++){if(+d[k].dataset.date==+new Date(t.getFullYear(),t.getMonth(),t.getDate()))return i+1}}return 0}
   var tbtn=document.getElementById('todayBtn'),tdot=tbtn.querySelector('.tdot'),toast=document.createElement('div'),tt;
