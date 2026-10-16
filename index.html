@@ -19,7 +19,7 @@
 .sub-row{display:grid;grid-template-columns:5px minmax(0,1fr) auto;gap:10px;align-items:stretch;padding:10px;border-radius:15px;background:var(--glass);border:1px solid var(--hair)}
 .sub-stripe{border-radius:5px;background:var(--sub-color,#007aff)}.sub-main{min-width:0}.sub-date{font-size:12px;font-weight:700;color:var(--sub-color,#007aff)}.sub-subject{font-weight:700;overflow-wrap:anywhere}.sub-project{font-size:13px;color:var(--muted);overflow-wrap:anywhere}.sub-delete{align-self:center;border:0;background:transparent;color:var(--red);font-size:18px;padding:6px;cursor:pointer}
 .sub-empty{padding:16px;border:1px dashed var(--hair);border-radius:15px;color:var(--muted);font-size:14px;text-align:center}
-.sub-form{border-top:1px solid var(--hair);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.sub-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}.sub-form input,.sub-form select{width:100%;min-width:0;border:1px solid var(--hair);border-radius:12px;padding:10px 11px;background:var(--glass);color:var(--fg);font:inherit;font-size:14px}.sub-form .wide{grid-column:1/-1}.sub-actions{display:flex;gap:8px;justify-content:flex-end;grid-column:1/-1}.sub-save{border:0;border-radius:999px;background:var(--accent);color:#fff;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.sub-save:disabled{opacity:.42;cursor:not-allowed}.sub-sync-status{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0}.sub-sync-status.error{color:var(--red)}.sub-day{display:block;width:fit-content;max-width:100%;margin:6px 0 2px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #d70015;background:#ff3b30;color:#fff;cursor:pointer;text-align:left;overflow-wrap:anywhere}.sub-day:hover{background:#d70015}.sub-day:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.sub-form{border-top:1px solid var(--hair);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.sub-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}.sub-form input,.sub-form select{width:100%;min-width:0;border:1px solid var(--hair);border-radius:12px;padding:10px 11px;background:var(--glass);color:var(--fg);font:inherit;font-size:14px}.sub-form .wide{grid-column:1/-1}.sub-actions{display:flex;gap:8px;justify-content:flex-end;grid-column:1/-1}.sub-save{border:0;border-radius:999px;background:var(--accent);color:#fff;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.sub-save:disabled{opacity:.42;cursor:not-allowed}.sub-sync-status{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0}.sub-sync-status.error{color:var(--red)}.sub-day{display:block!important;visibility:visible!important;opacity:1!important;position:relative;z-index:2;width:fit-content;max-width:100%;margin:6px 0 8px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #d70015;background:#ff3b30;color:#fff;cursor:pointer;text-align:left;overflow-wrap:anywhere}.sub-day:hover{background:#d70015}.sub-day:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
 @media(max-width:899px){.sub-panel{padding:15px}.sub-form{grid-template-columns:1fr}.sub-form .wide,.sub-actions{grid-column:auto}.sub-top h2{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.sub-modal{transition:none}}
 
@@ -324,15 +324,16 @@ body{overflow-x:clip}
 .sess.dim{pointer-events:none}
 @media print{.fpop,.fbtn{display:none!important}}
 
-/* Mobile week bar: show exactly two weeks at once, with controls kept visible. */
+/* Mobile week bar: show one week at a time; swipe/scroll for other weeks. */
 .tab .ds{display:none}
 @media (max-width:899px){
   .bar{gap:6px;align-items:center}
-  .bar .tabs{gap:3px;padding:4px;flex:1 1 0;width:0;min-width:0;max-width:none;overflow-x:auto;scroll-snap-type:x proximity}
-  .bar .tab{flex:0 0 calc((100% - 3px)/2);min-width:0;padding:8px 3px;white-space:normal;scroll-snap-align:start;font-size:12px;line-height:1.15}
-  .bar .tab small{display:block;font-size:10px;line-height:1.15;margin-top:3px;white-space:nowrap}
-  .tab .dl{display:none}
-  .tab .ds{display:block;font-size:10px;letter-spacing:-.02em;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .bar .tabs{gap:3px;padding:4px;flex:1 1 0;width:0;min-width:0;max-width:none;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .bar .tabs::-webkit-scrollbar{display:none}
+  .bar .tab{flex:0 0 100%;min-width:0;padding:8px 5px;white-space:normal;scroll-snap-align:center;font-size:13px;line-height:1.2}
+  .bar .tab small{display:block;font-size:11px;line-height:1.15;margin-top:3px;white-space:nowrap}
+  .bar .tab small.dl{display:none!important}
+  .bar .tab small.ds{display:block!important;font-size:11px;letter-spacing:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   #todayBtn{flex:0 0 auto;padding:0 9px 0 7px;gap:5px;font-size:13px}
   .bar .fbtn{flex:0 0 44px;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
   .bar .fbtn svg,.project-btn svg{width:23px;height:23px}
@@ -427,8 +428,10 @@ body{overflow-x:clip}
   /* Week switching */
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
-    tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
+    var activeTab=null;
+    tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;if(on)activeTab=t;
       });
+    if(activeTab&&window.innerWidth<900){var tabStrip=document.querySelector('.bar .tabs');if(tabStrip)tabStrip.scrollTo({left:activeTab.offsetLeft-tabStrip.offsetLeft,behavior:animate?'smooth':'auto'});}
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
       if(on&&changed&&animate){p.classList.add(dir)}
       var b=p.querySelectorAll('.wbtn');if(b.length){b[0].disabled=w<=1;b[1].disabled=w>=N}});
@@ -610,7 +613,30 @@ body{overflow-x:clip}
       bannerItems.innerHTML='';if(active.length){banner.classList.add('on');active.forEach(function(x){var item=document.createElement('div');item.className='sb-item';item.innerHTML='<b>'+esc(dateLabel(x.date))+' · '+esc(x.subject)+'</b><small>'+esc(x.project)+'</small>';bannerItems.appendChild(item)})}else banner.classList.remove('on');renderDayEntries(a)}
     function showSubmissionDetails(x){window.alert('Submission details\n\nDate: '+dateLabel(x.date)+'\nSubject: '+x.subject+'\nTitle: '+x.project)}
     function makeDayTag(x){var n=document.createElement('button');n.type='button';n.className='sub-day';n.textContent='Submission';n.setAttribute('aria-label','View submission: '+x.subject+' — '+x.project);n.title='Click to view submission details';n.addEventListener('click',function(){showSubmissionDetails(x)});return n}
-    function renderDayEntries(a){document.querySelectorAll('.sub-day').forEach(function(n){n.remove()});a.forEach(function(x){var d=new Date(x.date+'T12:00:00'),day=d.getDate(),mon=d.toLocaleDateString('en-US',{month:'short'});document.querySelectorAll('.mob .day').forEach(function(card){var h=card.querySelector('h3');if(!h)return;var txt=h.textContent;if(new RegExp('\\b'+day+'\\s+'+mon+'\\b','i').test(txt)){var n=makeDayTag(x),ev=card.querySelector('.ev');if(ev)ev.insertAdjacentElement('afterend',n);else h.insertAdjacentElement('afterend',n)}});document.querySelectorAll('.desk table.grid thead th').forEach(function(th){var m=th.querySelector('.dm');if(!m)return;var txt=m.textContent.trim();if(txt.toLowerCase()===day+' '+mon.toLowerCase()){var n=makeDayTag(x),ev=th.querySelector('.ev');if(ev)ev.insertAdjacentElement('afterend',n);else{var wd=th.querySelector('.wd');if(wd)wd.insertAdjacentElement('afterend',n);else th.insertBefore(n,th.firstChild)}}})})}
+    function renderDayEntries(a){
+      document.querySelectorAll('.sub-day').forEach(function(n){n.remove()});
+      a.forEach(function(x){
+        var d=new Date(String(x.date).slice(0,10)+'T12:00:00');
+        if(isNaN(d.getTime()))return;
+        var day=d.getDate(),mon=d.toLocaleDateString('en-US',{month:'short'}).toLowerCase();
+        document.querySelectorAll('.mob .day').forEach(function(card){
+          var h=card.querySelector('h3');if(!h)return;
+          var txt=h.textContent.toLowerCase();
+          if(new RegExp('\\b'+day+'\\s+'+mon+'\\b','i').test(txt)){
+            var n=makeDayTag(x);
+            h.insertAdjacentElement('afterend',n);
+          }
+        });
+        document.querySelectorAll('.desk table.grid thead th').forEach(function(th){
+          var m=th.querySelector('.dm');if(!m)return;
+          var txt=m.textContent.trim().toLowerCase().replace(/\s+/g,' ');
+          if(txt===day+' '+mon){
+            var n=makeDayTag(x);
+            m.insertAdjacentElement('afterend',n);
+          }
+        });
+      });
+    }
     function setOpen(v){modal.classList.toggle('on',v);modal.setAttribute('aria-hidden',String(!v));document.body.style.overflow=v?'hidden':'';if(v){sync();setTimeout(function(){close.focus()},20)}}
     btn.addEventListener('click',function(){setOpen(true)});close.addEventListener('click',function(){setOpen(false)});modal.addEventListener('click',function(e){if(e.target===modal)setOpen(false)});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.classList.contains('on'))setOpen(false)});
     form.addEventListener('submit',function(e){e.preventDefault();if(!synced||busy){setStatus('Not synced — submission was not added. Please wait for a successful sync.',true);return}var date=document.getElementById('subDate').value,subject=document.getElementById('subSubject').value,project=document.getElementById('subProject').value.trim();if(!date||!subject||!project)return;busy=true;setReady(false);setStatus('Saving to Google Sheets…');jsonp({action:'add',date:date,subject:subject,project:project}).then(function(){form.reset();return sync()}).then(function(ok){if(ok)setStatus('Submission saved to Google Sheets and synced ✓')}).catch(function(err){setReady(false);setStatus('Save failed — nothing was added locally. '+err.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})});
