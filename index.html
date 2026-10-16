@@ -72,6 +72,10 @@ h2 span{font-weight:500;font-size:16px;color:var(--muted);margin-left:8px;letter
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill{color:hsl(var(--h) 90% 75%)}}
 :root[data-theme="dark"] .pill{color:hsl(var(--h) 90% 75%)}
 .pill b{font-weight:700;margin-left:2px}
+/* Uniform course-code badges in the directory for a balanced mobile layout */
+.dir .d tbody .pill{display:inline-flex;align-items:center;justify-content:center;width:84px;height:40px;min-width:84px;padding:0;white-space:nowrap;line-height:1;box-sizing:border-box}
+.dir .d tbody .pill b{margin-left:2px}
+
 .scroll{overflow-x:auto;border:1px solid var(--glass-border);border-radius:26px;background:var(--glass);box-shadow:var(--shadow);
   -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%)}
 table.grid{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;min-width:980px}
@@ -153,11 +157,9 @@ h1{background:linear-gradient(180deg,var(--fg),color-mix(in srgb,var(--fg) 72%,t
 .wbtn svg{width:16px;height:16px}
 .whead .wsum{order:3;width:100%;margin-top:2px}
 @media (min-width:900px){.whead .wsum{order:0;width:auto;margin:0}.wnav{margin-left:12px}}
-/* Panel transition */
-.panel.enter-r{animation:inR .5s var(--spring)}
-.panel.enter-l{animation:inL .5s var(--spring)}
-@keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
-@keyframes inL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+/* Smooth week change: fade only, with no movement or scale that can feel like zooming */
+.panel.enter-r,.panel.enter-l{animation:weekFade .22s ease-out both}
+@keyframes weekFade{from{opacity:.65}to{opacity:1}}
 /* Today (iOS Calendar style) */
 th.today .dm,.day.today h3 .dd{background:var(--red);color:#fff;border-radius:999px;padding:1px 9px;font-weight:700;margin-left:6px}
 th.today .wd,.day.today h3>span:first-child{color:var(--red)}
@@ -364,9 +366,9 @@ body{overflow-x:clip}
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
     tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
-      if(on&&animate!==undefined){try{t.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})}catch(e){}}});
+      });
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
-      if(on&&changed&&animate){void p.offsetWidth;p.classList.add(dir)}
+      if(on&&changed&&animate){p.classList.add(dir)}
       var b=p.querySelectorAll('.wbtn');if(b.length){b[0].disabled=w<=1;b[1].disabled=w>=N}});
     if(animate){try{history.replaceState(null,'','#w'+w)}catch(e){}}
     if(animate){var tb=document.querySelector('.tabs');var top=tb.getBoundingClientRect().bottom;if(top<0)window.scrollTo({top:0,behavior:'smooth'})}
@@ -494,7 +496,7 @@ body{overflow-x:clip}
 
     function apply(){
       var keys=Object.keys(sel),on=keys.length>0;
-      [].forEach.call(document.querySelectorAll('.sess'),function(s){s.classList.toggle('dim',on&&!sel[s.dataset.c])});
+      [].forEach.call(document.querySelectorAll('.sess[data-c]:not(.spec)'),function(s){s.classList.toggle('dim',on&&!sel[s.dataset.c])});
       [].forEach.call(document.querySelectorAll('.pills .pill'),function(p){p.classList.toggle('fade',on&&!sel[p.firstChild.textContent.trim()])});
       [].forEach.call(list.children,function(b){b.setAttribute('aria-checked',sel[b.dataset.c]?'true':'false')});
       cnt.textContent=keys.length;cnt.hidden=!on;btn.classList.toggle('on',on);clr.disabled=!on;
