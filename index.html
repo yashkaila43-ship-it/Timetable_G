@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Division G Timetable</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <style>
 /* iOS 26 "Liquid Glass" styling: SF system fonts, system colors, translucent blurred glass surfaces. */
 :root{
@@ -127,6 +127,77 @@ table.d{border-collapse:collapse;width:100%;min-width:720px}
 @media (max-width:899px){.desk{display:none}.mob{display:block}.filter{width:100%}select{min-width:0;width:100%}.tabs{width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root{--glass:rgba(255,255,255,.9)}}
+
+/* ---- v3 refinements ---- */
+:root{--sheen:.38;--spring:cubic-bezier(.32,.72,0,1)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sheen:.09}}
+:root[data-theme="dark"]{--sheen:.09}
+html{scroll-behavior:smooth}
+body{padding-bottom:max(56px,calc(env(safe-area-inset-bottom,0px) + 40px))}
+/* Liquid Glass: specular sheen + bright rim + soft inner depth */
+.tabs,.scroll,.day,.dirwrap{
+  background:linear-gradient(140deg,rgba(255,255,255,var(--sheen)) 0%,rgba(255,255,255,0) 42%),var(--glass);
+  box-shadow:var(--shadow),0 0 0 .5px rgba(255,255,255,.35) inset,0 -10px 24px -14px rgba(0,0,0,.08) inset}
+.day.sat{background:linear-gradient(140deg,rgba(255,255,255,var(--sheen)) 0%,rgba(255,255,255,0) 42%),var(--glass-strong)}
+h1{background:linear-gradient(180deg,var(--fg),color-mix(in srgb,var(--fg) 72%,transparent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+/* Tabs: bigger touch targets, centred selection */
+.tab{min-width:84px;align-items:center;transition:background .35s var(--spring),color .25s,transform .3s var(--spring),box-shadow .35s var(--spring)}
+.tab:not([aria-selected="true"]):hover{background:rgba(120,120,128,.12)}
+/* Week header with prev/next */
+.whead{align-items:center}
+.wnav{display:flex;gap:8px;margin-left:auto}
+.wbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--glass-border);background:var(--glass);color:var(--accent);display:grid;place-items:center;cursor:pointer;
+  -webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:var(--shadow);transition:transform .3s var(--spring),opacity .2s}
+.wbtn:active{transform:scale(.88)}
+.wbtn[disabled]{opacity:.35;cursor:default}
+.wbtn svg{width:16px;height:16px}
+.whead .wsum{order:3;width:100%;margin-top:2px}
+@media (min-width:900px){.whead .wsum{order:0;width:auto;margin:0}.wnav{margin-left:12px}}
+/* Panel transition */
+.panel.enter-r{animation:inR .5s var(--spring)}
+.panel.enter-l{animation:inL .5s var(--spring)}
+@keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+/* Today (iOS Calendar style) */
+th.today .dm,.day.today h3 .dd{background:var(--red);color:#fff;border-radius:999px;padding:1px 9px;font-weight:700;margin-left:6px}
+th.today .wd,.day.today h3>span:first-child{color:var(--red)}
+td.today-col{background:rgba(0,122,255,.05)}
+.day.today{box-shadow:var(--shadow),0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+.sess.live{box-shadow:0 0 0 2px var(--accent),0 6px 20px color-mix(in srgb,var(--accent) 35%,transparent)}
+.sess.live .cr::after{content:"NOW";margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:1px 7px;border-radius:999px}
+/* Floating Today button */
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 10px));z-index:30;font:inherit;font-weight:600;font-size:15px;color:var(--accent);
+  padding:11px 18px;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass-strong);cursor:pointer;
+  -webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);box-shadow:var(--shadow);
+  opacity:0;transform:translateY(16px) scale(.9);pointer-events:none;transition:opacity .35s var(--spring),transform .35s var(--spring)}
+.fab.on{opacity:1;transform:none;pointer-events:auto}
+.fab:active{transform:scale(.94)}
+/* Desktop hover */
+@media (hover:hover){.grid .sess:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 10px 24px rgba(0,0,0,.14),0 1px 0 rgba(255,255,255,.4) inset;z-index:2}}
+.grid .sess{transition:transform .35s var(--spring),box-shadow .35s var(--spring),opacity .3s}
+/* Phone: Calendar-style rows with time column */
+.mob .sess{display:grid;grid-template-columns:54px 1fr;column-gap:10px;align-items:start;padding:11px 12px 11px 16px}
+.mob .sess .t{grid-column:1;grid-row:1 / span 3;margin:0;font-size:15px;font-weight:600;line-height:1.2;color:var(--fg);font-variant-numeric:tabular-nums}
+.mob .sess .t small{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px}
+.mob .sess .cn,.mob .sess .cf,.mob .sess .cr{grid-column:2}
+.mob .sess .cn{font-size:15px}
+.mob .sess .cf{font-size:13px}
+.mob .sess .cr{font-size:12px}
+.mob .day h3{font-size:20px}
+.mob .ev{font-size:12.5px}
+.mob .ev:not(.off){background:rgba(0,122,255,.12);display:inline-block;padding:3px 10px;border-radius:999px}
+@media (max-width:899px){
+  body{padding-top:12px}
+  header.top{margin-top:4px}
+  .tabs{margin-inline:-4px;width:calc(100% + 8px)}
+  .tab{min-width:78px}
+}
+@media (prefers-reduced-transparency:reduce){
+  :root{--glass:rgba(255,255,255,.96);--glass-strong:#fff}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:#1c1c1e;--glass-strong:#2c2c2e}}
+  *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+@media print{body::before,.tabs,.wnav,.fab{display:none!important}.panel{display:block!important}.desk{display:block!important}.mob{display:none!important}.scroll,.day{box-shadow:none;background:#fff}}
 </style>
 <div class="wrap">
   <header class="top">
@@ -144,26 +215,95 @@ table.d{border-collapse:collapse;width:100%;min-width:720px}
       <tbody><tr><td><span class="pill" style="--h:28">BF</span></td><td>Behavioural Finance</td><td class="mono">PGD516</td><td>CA. Dhwanik Shah (DSH)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:335">CVM</span></td><td>Customer Value Management</td><td class="mono">PGD514</td><td>Mr. Amitabh Banerji (ABA)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:262">DL-GA</span></td><td>Deep Learning with GenAI</td><td class="mono">PGDBA512</td><td>Prof. Jayesh Jain (JJA)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:140">DSCM</span></td><td>Distribution and Supply Chain Management</td><td class="mono">PGD511</td><td>Mr. Sunil Kulkarni (SKU)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:52">LAB</span></td><td>Legal Aspects of Business</td><td class="mono">PGD502</td><td>Prof. Prachi Chaturvedi (PCH)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:305">ML</span></td><td>Machine Learning</td><td class="mono">PGDBA513</td><td>Ms. Vasanthi Krishna (VKR)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:188">MCS</span></td><td>Management Control Systems</td><td class="mono">PGD517</td><td>Mr. Pradeep Joshi (PJO)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:8">PBM</span></td><td>Product and Brand Management</td><td class="mono">PGD512</td><td>Dr. Mangesh Kasbekar (MKA)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:218">PIP</span></td><td>Programming in Python</td><td class="mono">PGDBA511</td><td>Dr. Shrikant Mulik (SMU)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:85">SM</span></td><td>Strategic Management</td><td class="mono">PGD501</td><td>Dr. Nazia Ansari (NAN)</td><td class="num">20</td></tr><tr><td><span class="pill" style="--h:165">TRM</span></td><td>Treasury and Risk Management</td><td class="mono">PGD515</td><td>Mr. Krishnan Sampath (KSA)</td><td class="num">20</td></tr></tbody>
       <tfoot><tr><td colspan="4">Total</td><td class="num">220</td></tr></tfoot>
     </table></div>
-    <p class="foot">Slots: 1 = 08:30–10:00, 2 = 10:15–11:45, 3 = 12:30–14:00, 4 = 14:15–15:45, 5 = 16:00–17:30. Saturdays use the same start times and are shaded. Cancelled, rescheduled and deferred sessions are not shown. The count above leaves out the one DISC debrief on 21 Oct. Source: calendar printed 16-10-2026.</p>
   </section>
 </div>
 <script>
 (function(){
   var tabs=[].slice.call(document.querySelectorAll('.tab')),panels=[].slice.call(document.querySelectorAll('.panel'));
-  function show(w){
-    tabs.forEach(function(t){t.setAttribute('aria-selected',String(t.dataset.w===w))});
-    panels.forEach(function(p){p.hidden=p.id!=='w'+w});
-  }
-  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.dataset.w);try{history.replaceState(null,'','#w'+t.dataset.w)}catch(e){}})});
-  var m=/^#w(\d+)$/.exec(location.hash||'');
-  show(m&&document.getElementById('w'+m[1])?m[1]:'1');
-  var cf=document.getElementById('cf');if(cf)cf.addEventListener('change',function(e){
-    var v=e.target.value;
-    [].forEach.call(document.querySelectorAll('.sess'),function(s){
-      s.classList.toggle('dim',v!=='all'&&s.dataset.c!==v&&!(v==='all'));
+  var cur=1,N=panels.length,MON={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  var SLOTS=['08:30–10:00','10:15–11:45','12:30–14:00','14:15–15:45','16:00–17:30'];
+  var YEAR=2026;
+  function pd(txt){var m=/(\d+)\s+([A-Za-z]{3})/.exec(txt||'');return m?new Date(YEAR,MON[m[2]],+m[1]):null}
+  function same(a,b){return a&&b&&a.getFullYear()==b.getFullYear()&&a.getMonth()==b.getMonth()&&a.getDate()==b.getDate()}
+  var CH_L='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+      CH_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+
+  /* Prep: week nav buttons, stacked times, date attributes */
+  panels.forEach(function(p,i){
+    /* mobile time column: 08:30 / 10:00 */
+    [].forEach.call(p.querySelectorAll('.mob .sess .t'),function(t){
+      var raw=t.textContent.trim();t.dataset.raw=raw;var m=/^(\d\d:\d\d)\s*[–-]\s*(\d\d:\d\d)$/.exec(raw);
+      if(m)t.innerHTML=m[1]+'<small>'+m[2]+'</small>';
+    });
+    /* dates */
+    var ths=[].slice.call(p.querySelectorAll('.desk thead th')).slice(1);
+    var days=[].slice.call(p.querySelectorAll('.mob .day'));
+    ths.forEach(function(th,k){
+      var d=pd((th.querySelector('.dm')||{}).textContent);if(!d)return;
+      th.dataset.date=+d;
+      var day=days[k];if(day){day.dataset.date=+d;
+        var h3=day.querySelector('h3');
+        for(var n=h3.firstChild;n;n=n.nextSibling){if(n.nodeType==3&&n.textContent.trim()){var s=document.createElement('span');s.className='dd';s.textContent=n.textContent.trim();h3.replaceChild(s,n);break}}
+      }
+      [].forEach.call(p.querySelectorAll('.desk tbody tr'),function(tr,ri){
+        var td=tr.children[k+1];if(td&&td.tagName=='TD'){td.dataset.date=+d;if(ri<5)td.dataset.slot=ri}
+      });
     });
   });
+
+  /* Week switching */
+  function show(w,animate){
+    w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
+    tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
+      if(on&&animate!==undefined){try{t.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})}catch(e){}}});
+    panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
+      if(on&&changed&&animate){void p.offsetWidth;p.classList.add(dir)}
+      var b=p.querySelectorAll('.wbtn');if(b.length){b[0].disabled=w<=1;b[1].disabled=w>=N}});
+    if(animate){try{history.replaceState(null,'','#w'+w)}catch(e){}}
+    if(animate){var tb=document.querySelector('.tabs');var top=tb.getBoundingClientRect().bottom;if(top<0)window.scrollTo({top:0,behavior:'smooth'})}
+    fabState();
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){show(+t.dataset.w,true)});
+    t.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();var n=cur+(e.key==='ArrowRight'?1:-1);show(n,true);var nt=tabs[Math.max(0,Math.min(N-1,n-1))];nt&&nt.focus()}});
+  });
+
+  /* Today / now */
+  var fab=document.createElement('button');fab.className='fab';fab.textContent='Today';document.body.appendChild(fab);
+  function todayWeek(){var t=new Date();for(var i=0;i<N;i++){var d=panels[i].querySelectorAll('.desk thead th[data-date]');for(var k=0;k<d.length;k++){if(+d[k].dataset.date==+new Date(t.getFullYear(),t.getMonth(),t.getDate()))return i+1}}return 0}
+  function fabState(){var tw=todayWeek();fab.classList.toggle('on',tw>0&&tw!==cur)}
+  fab.addEventListener('click',function(){var tw=todayWeek();if(tw)show(tw,true)});
+  function mins(s){var a=s.split(':');return +a[0]*60+ +a[1]}
+  function mark(){
+    var now=new Date(),t0=+new Date(now.getFullYear(),now.getMonth(),now.getDate()),nm=now.getHours()*60+now.getMinutes();
+    [].forEach.call(document.querySelectorAll('.today,.today-col,.live'),function(e){e.classList.remove('today','today-col','live')});
+    [].forEach.call(document.querySelectorAll('[data-date="'+t0+'"]'),function(e){
+      if(e.tagName=='TH')e.classList.add('today');
+      else if(e.tagName=='TD'){e.classList.add('today-col');
+        if(e.dataset.slot!==undefined){var r=SLOTS[+e.dataset.slot].split('–');if(nm>=mins(r[0])&&nm<=mins(r[1])){var s=e.querySelector('.sess');s&&s.classList.add('live')}}}
+      else{e.classList.add('today');
+        [].forEach.call(e.querySelectorAll('.sess .t'),function(t){var r=(t.dataset.raw||'').split('–');if(r.length==2&&nm>=mins(r[0])&&nm<=mins(r[1]))t.parentNode.classList.add('live')})}
+    });
+    fabState();
+  }
+  mark();setInterval(mark,60000);
+
+  /* Swipe between weeks on touch devices */
+  var sx=0,sy=0,st=0;
+  document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now()},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(window.innerWidth>=900||e.target.closest&&e.target.closest('.tabs,.dirwrap'))return;
+    var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)>70&&Math.abs(dy)<45&&Date.now()-st<600)show(cur+(dx<0?1:-1),true);
+  },{passive:true});
+
+  /* Initial week: hash → today's week → week 1 */
+  var m=/^#w(\d+)$/.exec(location.hash||'');
+  var start=m&&document.getElementById('w'+m[1])?+m[1]:(todayWeek()||1);
+  show(start);
 })();
 </script>
+
 
 </body></html>
