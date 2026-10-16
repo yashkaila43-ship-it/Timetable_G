@@ -459,7 +459,7 @@ body{overflow-x:clip}
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
     tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
-      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,t.offsetLeft-tc.offsetLeft-tc.clientLeft-4),behavior:animate?'smooth':'auto'})}
+      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,tc.scrollLeft+t.getBoundingClientRect().left-tc.getBoundingClientRect().left-tc.clientLeft-4),behavior:animate?'smooth':'auto'})}
       });
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
       if(on&&changed&&animate){p.classList.add(dir)}
