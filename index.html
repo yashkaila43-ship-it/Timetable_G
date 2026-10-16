@@ -52,7 +52,15 @@
 .sb-item .sub-left{margin:0 0 0 8px}
 .sub-type{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;color:var(--fg);background:var(--off);vertical-align:1px}
 .sub-form input[type=date]{-webkit-user-select:none;user-select:none}
-.sub-day{font-size:13px;padding:6px 12px}
+/* Submission tag spacing + vertically centred date field */
+.sub-day{font-size:13px;line-height:1.2;padding:7px 14px;margin:0}
+.mob .day .sub-day{margin:0 0 12px}
+.mob .day .ev:has(+.sub-day){margin-bottom:8px}
+.mob .day h3+.sub-day{margin-top:2px}
+.grid thead th .sub-day{margin:8px 0 2px}
+.sub-form input[type=date]{display:flex;align-items:center;line-height:1.2;padding-top:0;padding-bottom:0}
+.sub-form input[type=date]::-webkit-date-and-time-value{display:flex;align-items:center;min-height:1.2em;line-height:1.2;margin:0;padding:0;text-align:left}
+.sub-form input[type=date]::-webkit-datetime-edit{padding:0;line-height:1.2}
 
 </style></head><body>
 <title>Division G Timetable</title>
