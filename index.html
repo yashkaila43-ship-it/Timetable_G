@@ -239,6 +239,10 @@ body{overflow-x:clip}
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:#1c1c1e;--glass-strong:#2c2c2e}}
   *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 }
+/* Screen-edge rounded corners (matches the iPhone display curve); purely visual, never blocks touches */
+html::after{content:"";position:fixed;inset:0;z-index:2147483647;pointer-events:none;border-radius:var(--screen-r,47px);
+  box-shadow:0 0 0 60px #fff;-webkit-transform:translateZ(0);transform:translateZ(0)}
+@media print{html::after{display:none}}
 @media print{body::before,.bar,.toast,.wnav{display:none!important}.panel{display:block!important}.desk{display:block!important}.mob{display:none!important}.scroll,.day{box-shadow:none;background:#fff}}
 </style>
 <div class="wrap">
