@@ -19,7 +19,12 @@
 .sub-row{display:grid;grid-template-columns:5px minmax(0,1fr) auto;gap:10px;align-items:stretch;padding:10px;border-radius:15px;background:var(--glass);border:1px solid var(--hair)}
 .sub-stripe{border-radius:5px;background:var(--sub-color,#007aff)}.sub-main{min-width:0}.sub-date{font-size:12px;font-weight:700;color:var(--sub-color,#007aff)}.sub-subject{font-weight:700;overflow-wrap:anywhere}.sub-project{font-size:13px;color:var(--muted);overflow-wrap:anywhere}.sub-delete{align-self:center;border:0;background:transparent;color:var(--red);font-size:18px;padding:6px;cursor:pointer}
 .sub-empty{padding:16px;border:1px dashed var(--hair);border-radius:15px;color:var(--muted);font-size:14px;text-align:center}
-.sub-form{border-top:1px solid var(--hair);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.sub-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}.sub-form input,.sub-form select{width:100%;min-width:0;border:1px solid var(--hair);border-radius:12px;padding:10px 11px;background:var(--glass);color:var(--fg);font:inherit;font-size:14px}.sub-form .wide{grid-column:1/-1}.sub-actions{display:flex;gap:8px;justify-content:flex-end;grid-column:1/-1}.sub-save{border:0;border-radius:999px;background:var(--accent);color:#fff;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.sub-save:disabled{opacity:.42;cursor:not-allowed}.sub-sync-status{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0}.sub-sync-status.error{color:var(--red)}.sub-day{display:block;width:fit-content;max-width:100%;margin:6px 0 2px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #d70015;background:#ff3b30;color:#fff;cursor:pointer;text-align:left;overflow-wrap:anywhere}.sub-day:hover{background:#d70015}.sub-day:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.sub-form{border-top:1px solid var(--hair);padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.sub-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}.sub-form input,.sub-form select{width:100%;min-width:0;border:1px solid var(--hair);border-radius:12px;padding:10px 11px;background:var(--glass);color:var(--fg);font:inherit;font-size:14px}.sub-form .wide{grid-column:1/-1}.sub-actions{display:flex;gap:8px;justify-content:flex-end;grid-column:1/-1}.sub-save{border:0;border-radius:999px;background:var(--accent);color:#fff;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.sub-save:disabled{opacity:.42;cursor:not-allowed}.sub-sync-status{grid-column:1/-1;font-size:12px;color:var(--muted);margin:0}.sub-sync-status.error{color:var(--red)}.sub-acts{display:flex;align-items:center;align-self:center;gap:4px}
+.sub-done{width:30px;height:30px;flex:0 0 30px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;border:2px solid #34c759;background:transparent;color:transparent;font-size:16px;font-weight:800;line-height:1;cursor:pointer;padding:0}
+.sub-done:hover{background:rgba(52,199,89,.18)}.sub-done.on{background:#34c759;color:#fff}.sub-done:disabled{opacity:.42;cursor:not-allowed}
+.sub-row.u-done,.sb-item.u-done{--sub-color:#34c759;--u:52,199,89}
+.sub-day.is-done{background:#34c759;border-color:#248a3d}.sub-day.is-done:hover{background:#248a3d}
+.sub-day{display:block;width:fit-content;max-width:100%;margin:6px 0 2px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #d70015;background:#ff3b30;color:#fff;cursor:pointer;text-align:left;overflow-wrap:anywhere}.sub-day:hover{background:#d70015}.sub-day:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
 @media(max-width:899px){.sub-panel{padding:15px}.sub-form{grid-template-columns:1fr}.sub-form .wide,.sub-actions{grid-column:auto}.sub-top h2{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.sub-modal{transition:none}}
 /* Submission form: aligned fields, 16px text (stops iOS zoom-on-focus), global select styles neutralised */
@@ -704,29 +709,37 @@ body{overflow-x:clip}
       function report(rows){if(reported)return;reported=true;alertReport(cfg.order,cfg.Many,rows)}
       function entryMain(x){
         var n=daysLeft(x.date);
-        return '<div class="sub-main"><div class="en-top"><span class="en-date">'+esc(dateLabel(x.date))+'</span><span class="sub-left">'+leftText(n)+'</span></div>'
+        return '<div class="sub-main"><div class="en-top"><span class="en-date">'+esc(dateLabel(x.date))+'</span><span class="sub-left">'+(x.done?'Done \u2713':leftText(n))+'</span></div>'
           +'<div class="en-subj">'+esc(x.subject)+'</div><div class="en-title">'+esc(x.project)+'</div>'
           +(x.type?'<span class="en-tag">'+esc(x.type)+'</span>':'')+'</div>'}
       function rowHTML(x,withDelete){
-        return '<span class="sub-stripe"></span>'+entryMain(x)+(withDelete?'<button class="sub-delete" type="button" aria-label="Delete '+cfg.one+'" title="Delete" '+(!synced||busy?'disabled':'')+'>×</button>':'')}
+        return '<span class="sub-stripe"></span>'+entryMain(x)+(withDelete?'<div class="sub-acts">'+(cfg.hasDone?'<button class="sub-done'+(x.done?' on':'')+'" type="button" aria-label="'+(x.done?'Marked done. Tap to undo':'Mark as done')+'" title="'+(x.done?'Done (tap to undo)':'Mark as done')+'" '+(!synced||busy?'disabled':'')+'>\u2713</button>':'')+'<button class="sub-delete" type="button" aria-label="Delete '+cfg.one+'" title="Delete" '+(!synced||busy?'disabled':'')+'>×</button></div>':'')}
+      function rowCls(x){return x.done?'u-done':'u-'+urgency(daysLeft(x.date))}
       function sync(){setReady(false);setStatus('Syncing with Google Sheets…');
         return call({action:'list'}).then(function(r){if(!Array.isArray(r.data))throw new Error('Google Sheets returned invalid data.');save(r.data);setReady(true);setStatus('Synced with Google Sheets ✓');render();
-          report(sorted().filter(function(x){return x.date>=todayISO()}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}}));return true})
+          report(sorted().filter(function(x){return x.date>=todayISO()&&!x.done}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}}));return true})
         .catch(function(e){setReady(false);setStatus('Not synced — adding '+cfg.many+' is disabled. '+e.message,true);render();report([]);return false})}
       function render(){
-        var a=sorted(),active=a.filter(function(x){return x.date>=todayISO()});
+        var a=sorted(),active=a.filter(function(x){return x.date>=todayISO()}),pend=active.filter(function(x){return !x.done});
         dateEl.min=todayISO();count.hidden=!active.length;count.textContent=active.length;list.innerHTML='';
         if(!a.length)list.innerHTML='<div class="sub-empty">No '+cfg.many+' added yet. Use the form below to add your first one.</div>';
         a.forEach(function(x){
-          var row=document.createElement('div');row.className='sub-row u-'+urgency(daysLeft(x.date));row.innerHTML=rowHTML(x,true);
-          row.querySelector('button').addEventListener('click',function(){
+          var row=document.createElement('div');row.className='sub-row '+rowCls(x);row.innerHTML=rowHTML(x,true);
+          var dn=row.querySelector('.sub-done');
+          if(dn)dn.addEventListener('click',function(){
+            if(!synced||busy)return;
+            var want=!x.done;
+            if(!window.confirm(want?'Mark this '+cfg.one+' as DONE?\n\n'+x.subject+' \u2014 '+x.project+'\n\nIt will be saved to Google Sheets and removed from the home page and alerts.':'Mark this '+cfg.one+' as NOT done again?\n\n'+x.subject+' \u2014 '+x.project))return;
+            busy=true;setReady(false);setStatus('Saving to Google Sheets\u2026');
+            call({action:'done',id:x.id,value:want?'1':'0'}).then(function(){return sync()}).then(function(ok){if(ok)setStatus((want?'Marked as done':'Marked as not done')+' and synced \u2713')}).catch(function(e){setReady(false);setStatus('Could not update. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})});
+          row.querySelector('.sub-delete').addEventListener('click',function(){
             if(!synced||busy)return;
             if(window.confirm('Delete this '+cfg.one+'? This will permanently delete it from the shared Google Sheet.')){
               busy=true;setReady(false);setStatus('Deleting '+cfg.one+'…');
               call({action:'delete',id:x.id}).then(function(){return sync()}).then(function(ok){if(ok)setStatus(cfg.Cap+' deleted and synced ✓')}).catch(function(e){setReady(false);setStatus('Delete failed. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})}});
           list.appendChild(row)});
         bannerItems.innerHTML='';
-        if(active.length){banner.classList.add('on');active.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n);item.innerHTML=entryMain(x);bannerItems.appendChild(item)})}else banner.classList.remove('on');
+        if(pend.length){banner.classList.add('on');pend.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n);item.innerHTML=entryMain(x);bannerItems.appendChild(item)})}else banner.classList.remove('on');
         renderDayEntries(a)}
 
       /* Day popup: everything due on the tapped day */
@@ -739,9 +752,9 @@ body{overflow-x:clip}
       dm.addEventListener('click',function(e){if(e.target===dm)setDay(false)});
       document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dm.classList.contains('on'))setDay(false)});
       function showDay(items){dayTitle.textContent=cfg.Many+' due '+dateLabel(items[0].date);dayList.innerHTML='';
-        items.forEach(function(x){var row=document.createElement('div');row.className='sub-row u-'+urgency(daysLeft(x.date));row.innerHTML=rowHTML(x,false);dayList.appendChild(row)});setDay(true)}
-      function makeDayTag(items){var n=document.createElement('button');n.type='button';n.className='sub-day sub-day-'+cfg.kind;
-        n.textContent=cfg.Cap+(items.length>1?' ('+items.length+')':'');
+        items.forEach(function(x){var row=document.createElement('div');row.className='sub-row '+rowCls(x);row.innerHTML=rowHTML(x,false);dayList.appendChild(row)});setDay(true)}
+      function makeDayTag(items){var n=document.createElement('button');n.type='button';var all=cfg.hasDone&&items.every(function(x){return x.done});n.className='sub-day sub-day-'+cfg.kind+(all?' is-done':'');
+        n.textContent=(all?'\u2713 ':'')+cfg.Cap+(items.length>1?' ('+items.length+')':'');
         n.setAttribute('aria-label','View '+items.length+' '+(items.length>1?cfg.many:cfg.one)+' due this day');
         n.addEventListener('click',function(){showDay(items)});return n}
       function renderDayEntries(a){
@@ -766,11 +779,11 @@ body{overflow-x:clip}
         busy=true;setReady(false);setStatus('Saving to Google Sheets…');
         var p={action:'add',date:date,subject:subject,project:project};if(cfg.hasType)p.type=type;
         call(p).then(function(){form.reset();return sync()}).then(function(ok){if(ok)setStatus(cfg.Cap+' saved to Google Sheets and synced ✓')}).catch(function(err){setReady(false);setStatus('Save failed — nothing was added locally. '+err.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})});
-      ALERT.providers.push({order:cfg.order,label:cfg.Many,rows:function(){return sorted().filter(function(x){return x.date>=todayISO()}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}})},refresh:sync});
+      ALERT.providers.push({order:cfg.order,label:cfg.Many,rows:function(){return sorted().filter(function(x){return x.date>=todayISO()&&!x.done}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}})},refresh:sync});
       setReady(false);render();sync();
       window.addEventListener('pageshow',function(){sync()});document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
     }
-    tracker({id:'project',kind:'submission',key:'dg-submissions-v1',order:1,one:'submission',many:'submissions',Cap:'Submission',Many:'Submissions',panel:'Projects & Submissions',hasType:true,titleLabel:'Project / submission title',placeholder:'e.g. Group project report'});
+    tracker({id:'project',kind:'submission',key:'dg-submissions-v2',hasDone:true,order:1,one:'submission',many:'submissions',Cap:'Submission',Many:'Submissions',panel:'Projects & Submissions',hasType:true,titleLabel:'Project / submission title',placeholder:'e.g. Group project report'});
     tracker({id:'test',kind:'test',key:'dg-tests-v1',order:2,one:'test',many:'tests',Cap:'Test',Many:'Tests',panel:'Tests',hasType:false,titleLabel:'Test title / topic',placeholder:'e.g. Mid-term test, Units 1–3'});
   })();
 
