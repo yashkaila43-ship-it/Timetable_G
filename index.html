@@ -107,6 +107,8 @@
 @media (min-width:1100px){
   .bar .tab{flex-basis:calc((100% - 10px - 4px*8)/9)}
 }
+.sb-toggle{align-self:flex-start;font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:transparent;border:0;padding:4px 2px;cursor:pointer}
+.sb-toggle:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
 </style></head><body>
 <title>Division G Timetable</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -744,6 +746,7 @@ body{overflow-x:clip}
         return call({action:'list'}).then(function(r){if(!Array.isArray(r.data))throw new Error('Google Sheets returned invalid data.');save(r.data);setReady(true);setStatus('Synced with Google Sheets ✓');render();
           report(sorted().filter(function(x){return x.date>=todayISO()&&!x.done}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}}));return true})
         .catch(function(e){setReady(false);setStatus('Not synced — adding '+cfg.many+' is disabled. '+e.message,true);render();report([]);return false})}
+      var doneOpen=false;
       function toggleDone(x){
         if(!synced||busy)return;
             var want=!x.done;
@@ -764,7 +767,11 @@ body{overflow-x:clip}
               call({action:'delete',id:x.id}).then(function(){return sync()}).then(function(ok){if(ok)setStatus(cfg.Cap+' deleted and synced ✓')}).catch(function(e){setReady(false);setStatus('Delete failed. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})}});
           list.appendChild(row)});
         bannerItems.innerHTML='';
-        if(pend.length){banner.classList.add('on');pend.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n)+(cfg.hasDone?' has-tick':'');item.innerHTML=entryMain(x)+(cfg.hasDone?tickBtn():'');var tk=item.querySelector('.sub-done');if(tk)tk.addEventListener('click',function(){toggleDone(x)});bannerItems.appendChild(item)})}else banner.classList.remove('on');
+        var dn=cfg.hasDone?active.filter(function(x){return x.done}):[];
+        if(pend.length||dn.length){banner.classList.add('on');pend.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n)+(cfg.hasDone?' has-tick':'');item.innerHTML=entryMain(x)+(cfg.hasDone?tickBtn():'');var tk=item.querySelector('.sub-done');if(tk)tk.addEventListener('click',function(){toggleDone(x)});bannerItems.appendChild(item)});
+          if(dn.length){var tg=document.createElement('button');tg.type='button';tg.className='sb-toggle';tg.setAttribute('aria-expanded',String(doneOpen));tg.textContent=(doneOpen?'Hide':'Show')+' completed ('+dn.length+')';tg.addEventListener('click',function(){doneOpen=!doneOpen;render()});bannerItems.appendChild(tg);
+            if(doneOpen)dn.forEach(function(x){var item=document.createElement('div');item.className='sb-item u-done has-tick';item.innerHTML=entryMain(x)+'<button class="sub-done on" type="button" aria-label="Marked done. Tap to undo" title="Done (tap to undo)" '+(!synced||busy?'disabled':'')+'>\u2713</button>';item.querySelector('.sub-done').addEventListener('click',function(){toggleDone(x)});bannerItems.appendChild(item)})}
+        }else banner.classList.remove('on');
         renderDayEntries(a)}
 
       /* Day popup: everything due on the tapped day */
