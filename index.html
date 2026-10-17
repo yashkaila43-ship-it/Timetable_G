@@ -651,7 +651,19 @@ body{overflow-x:clip}
     function urgency(n){return n<0?'past':n<=5?'high':n<=10?'med':'low'}
     function leftText(n){return n<0?'Overdue':n===0?'Due today':n===1?'1 day left':n+' days left'}
     function keyOf(iso){var p=iso.split('-');return +new Date(+p[0],+p[1]-1,+p[2])}
-    function jsonp(params){return new Promise(function(resolve,reject){var cb='dgSheetCb'+Date.now()+Math.random().toString(36).slice(2),script=document.createElement('script'),timer=setTimeout(function(){cleanup();reject(new Error('Google Sheets sync timed out. Check the deployment URL and internet connection.'))},15000);function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){window[cb]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=function(result){cleanup();if(result&&result.ok)resolve(result);else reject(new Error(result&&result.error||'Google Sheets request failed.'))};params.callback=cb;script.onerror=function(){cleanup();reject(new Error('Could not connect to Google Sheets.'))};script.src=API_URL+(API_URL.indexOf('?')>=0?'&':'?')+Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');document.head.appendChild(script)})}
+    function scriptJsonp(params){return new Promise(function(resolve,reject){var cb='dgSheetCb'+Date.now()+Math.random().toString(36).slice(2),script=document.createElement('script'),timer=setTimeout(function(){cleanup();reject(new Error('Google Sheets sync timed out. Check the deployment URL and internet connection.'))},15000);function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){window[cb]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=function(result){cleanup();if(result&&result.ok)resolve(result);else reject(new Error(result&&result.error||'Google Sheets request failed.'))};params.callback=cb;script.onerror=function(){cleanup();reject(new Error('Could not connect to Google Sheets. Check that the web app is deployed with access set to Anyone.'))};script.src=API_URL+(API_URL.indexOf('?')>=0?'&':'?')+Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');document.head.appendChild(script)})}
+    /* Preferred transport: plain fetch with NO cookies, so it behaves the same for every visitor whatever Google account the browser is signed into.
+       Falls back to the script-tag (JSONP) method only if fetch itself is blocked. */
+    function fetchApi(params){
+      var q=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');
+      var ac=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ac)ac.abort()},15000);
+      return fetch(API_URL+(API_URL.indexOf('?')>=0?'&':'?')+q,{method:'GET',credentials:'omit',redirect:'follow',cache:'no-store',signal:ac?ac.signal:undefined})
+        .then(function(r){return r.text()})
+        .then(function(txt){clearTimeout(t);var res;try{res=JSON.parse(txt)}catch(e){throw new Error('Google Sheets did not return data (the web app may not be set to "Anyone").')}
+          if(res&&res.ok)return res;var er=new Error(res&&res.error||'Google Sheets request failed.');er.app=true;throw er},function(e){clearTimeout(t);throw e})}
+    function jsonp(params){
+      var copy={};Object.keys(params).forEach(function(k){copy[k]=params[k]});
+      return fetchApi(copy).catch(function(e){if(e&&e.app)throw e;return scriptJsonp(params)})}
 
     /* One combined alert popup on page open (submissions + tests) */
     var ALERT={pending:2,groups:[],providers:[]},am=document.createElement('div');
