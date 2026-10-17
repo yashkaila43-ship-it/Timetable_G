@@ -649,7 +649,7 @@ body{overflow-x:clip}
     function jsonp(params){return new Promise(function(resolve,reject){var cb='dgSheetCb'+Date.now()+Math.random().toString(36).slice(2),script=document.createElement('script'),timer=setTimeout(function(){cleanup();reject(new Error('Google Sheets sync timed out. Check the deployment URL and internet connection.'))},15000);function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){window[cb]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=function(result){cleanup();if(result&&result.ok)resolve(result);else reject(new Error(result&&result.error||'Google Sheets request failed.'))};params.callback=cb;script.onerror=function(){cleanup();reject(new Error('Could not connect to Google Sheets.'))};script.src=API_URL+(API_URL.indexOf('?')>=0?'&':'?')+Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k])}).join('&');document.head.appendChild(script)})}
 
     /* One combined alert popup on page open (submissions + tests) */
-    var ALERT={pending:2,groups:[]},am=document.createElement('div');
+    var ALERT={pending:2,groups:[],providers:[]},am=document.createElement('div');
     am.className='sub-modal';am.setAttribute('aria-hidden','true');
     am.innerHTML='<section class="sub-panel" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle"><div class="sub-top"><h2 id="alertTitle">⚠️ Coming up</h2><button type="button" class="sub-close" aria-label="Close">×</button></div><p class="sub-help" id="alertSub"></p><div id="alertBody"></div><button type="button" class="sub-save alert-ok">Got it</button></section>';
     document.body.appendChild(am);
@@ -661,13 +661,22 @@ body{overflow-x:clip}
     function alertReport(order,label,rows){
       ALERT.groups.push({order:order,label:label,rows:rows});
       if(--ALERT.pending>0)return;
-      var g=ALERT.groups.filter(function(x){return x.rows.length}).sort(function(a,b){return a.order-b.order});
-      if(!g.length)return;
+      showAlertGroups(ALERT.groups)}
+    function showAlertGroups(groups){
+      var g=groups.filter(function(x){return x.rows.length}).sort(function(a,b){return a.order-b.order});
+      if(!g.length){setAlert(false);return}
       var body=am.querySelector('#alertBody'),total=0;body.innerHTML='';
       g.forEach(function(x){total+=x.rows.length;var h=document.createElement('h3');h.className='al-h';h.textContent=x.label+' · '+x.rows.length;body.appendChild(h);
         var l=document.createElement('div');l.className='sub-list';x.rows.forEach(function(r){var row=document.createElement('div');row.className='sub-row '+r.cls;row.innerHTML=r.html;l.appendChild(row)});body.appendChild(l)});
       am.querySelector('#alertSub').textContent=total+(total>1?' items are':' item is')+' coming up. Nearest first.';
       setAlert(true)}
+
+    /* Re-open the alert popup (used when the app is opened again after being inactive) */
+    window.dgShowAlert=function(){
+      function build(){return ALERT.providers.map(function(p){return{order:p.order,label:p.label,rows:p.rows()}})}
+      if(ALERT.pending>0)return; /* first load still syncing: the normal on-open alert will show */
+      showAlertGroups(build());
+      Promise.all(ALERT.providers.map(function(p){return p.refresh()})).then(function(){if(am.classList.contains('on'))showAlertGroups(build())})};
 
     function tracker(cfg){
       var P=cfg.id,KEY=cfg.key,btn=document.getElementById(P+'Btn'),count=btn.querySelector('.project-count');
@@ -757,6 +766,7 @@ body{overflow-x:clip}
         busy=true;setReady(false);setStatus('Saving to Google Sheets…');
         var p={action:'add',date:date,subject:subject,project:project};if(cfg.hasType)p.type=type;
         call(p).then(function(){form.reset();return sync()}).then(function(ok){if(ok)setStatus(cfg.Cap+' saved to Google Sheets and synced ✓')}).catch(function(err){setReady(false);setStatus('Save failed — nothing was added locally. '+err.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})});
+      ALERT.providers.push({order:cfg.order,label:cfg.Many,rows:function(){return sorted().filter(function(x){return x.date>=todayISO()}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}})},refresh:sync});
       setReady(false);render();sync();
       window.addEventListener('pageshow',function(){sync()});document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
     }
@@ -782,11 +792,12 @@ body{overflow-x:clip}
   if(document.readyState==='complete')openAtToday();else window.addEventListener('load',openAtToday);
   /* Coming back to the app after a while (or from the bfcache) also lands on today */
   var hiddenAt=0;
+  function onReturn(){openAtToday();if(window.dgShowAlert)window.dgShowAlert()}
   document.addEventListener('visibilitychange',function(){
     if(document.hidden){hiddenAt=Date.now()}
-    else if(hiddenAt&&Date.now()-hiddenAt>5*60*1000){hiddenAt=0;openAtToday()}
+    else if(hiddenAt&&Date.now()-hiddenAt>5*60*1000){hiddenAt=0;onReturn()}
   });
-  window.addEventListener('pageshow',function(e){if(e.persisted)openAtToday()});
+  window.addEventListener('pageshow',function(e){if(e.persisted)onReturn()});
 })();
 </script>
 
