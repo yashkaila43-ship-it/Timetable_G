@@ -94,6 +94,19 @@
 .sub-form input[type=date]::-webkit-date-and-time-value{display:flex;align-items:center;min-height:1.2em;line-height:1.2;margin:0;padding:0;text-align:left}
 .sub-form input[type=date]::-webkit-datetime-edit{padding:0;line-height:1.2}
 
+
+/* Banner tick (home page upcoming box) */
+.sb-item.has-tick{flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+.sb-item.has-tick .sub-main{flex:1 1 auto;min-width:0}
+.sb-item.has-tick .sub-done{align-self:center}
+/* Desktop week bar: exactly 9 weeks visible (7 on narrower desktops), scroll/snap for the rest */
+@media (min-width:900px){
+  .bar .tabs{flex:1 1 0;width:auto;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:5px}
+  .bar .tab{flex:0 0 calc((100% - 10px - 4px*6)/7);min-width:0;padding-inline:4px;white-space:nowrap;scroll-snap-align:start}
+}
+@media (min-width:1100px){
+  .bar .tab{flex-basis:calc((100% - 10px - 4px*8)/9)}
+}
 </style></head><body>
 <title>Division G Timetable</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -725,25 +738,25 @@ body{overflow-x:clip}
           +'<div class="en-subj">'+esc(x.subject)+'</div><div class="en-title">'+esc(x.project)+'</div>'
           +(x.type?'<span class="en-tag">'+esc(x.type)+'</span>':'')+'</div>'}
       function rowHTML(x,withDelete){
-        return '<span class="sub-stripe"></span>'+entryMain(x)+(withDelete?'<div class="sub-acts">'+(cfg.hasDone?'<button class="sub-done'+(x.done?' on':'')+'" type="button" aria-label="'+(x.done?'Marked done. Tap to undo':'Mark as done')+'" title="'+(x.done?'Done (tap to undo)':'Mark as done')+'" '+(!synced||busy?'disabled':'')+'>\u2713</button>':'')+'<button class="sub-delete" type="button" aria-label="Delete '+cfg.one+'" title="Delete" '+(!synced||busy?'disabled':'')+'>×</button></div>':'')}
+        return '<span class="sub-stripe"></span>'+entryMain(x)+(withDelete?'<div class="sub-acts">'+'<button class="sub-delete" type="button" aria-label="Delete '+cfg.one+'" title="Delete" '+(!synced||busy?'disabled':'')+'>×</button></div>':'')}
       function rowCls(x){return x.done?'u-done':'u-'+urgency(daysLeft(x.date))}
       function sync(){setReady(false);setStatus('Syncing with Google Sheets…');
         return call({action:'list'}).then(function(r){if(!Array.isArray(r.data))throw new Error('Google Sheets returned invalid data.');save(r.data);setReady(true);setStatus('Synced with Google Sheets ✓');render();
           report(sorted().filter(function(x){return x.date>=todayISO()&&!x.done}).map(function(x){return{cls:'u-'+urgency(daysLeft(x.date)),html:rowHTML(x,false)}}));return true})
         .catch(function(e){setReady(false);setStatus('Not synced — adding '+cfg.many+' is disabled. '+e.message,true);render();report([]);return false})}
+      function toggleDone(x){
+        if(!synced||busy)return;
+            var want=!x.done;
+            if(!window.confirm(want?'Mark this '+cfg.one+' as DONE?\n\n'+x.subject+' \u2014 '+x.project+'\n\nIt will be saved to Google Sheets and removed from the home page and alerts.':'Mark this '+cfg.one+' as NOT done again?\n\n'+x.subject+' \u2014 '+x.project))return;
+            busy=true;setReady(false);setStatus('Saving to Google Sheets\u2026');
+            call({action:'done',id:x.id,value:want?'1':'0'}).then(function(){return sync()}).then(function(ok){if(ok)setStatus((want?'Marked as done':'Marked as not done')+' and synced \u2713')}).catch(function(e){setReady(false);setStatus('Could not update. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})}
+      function tickBtn(){return '<button class="sub-done" type="button" aria-label="Mark as done" title="Mark as done" '+(!synced||busy?'disabled':'')+'>\u2713</button>'}
       function render(){
         var a=sorted(),active=a.filter(function(x){return x.date>=todayISO()}),pend=active.filter(function(x){return !x.done});
         dateEl.min=todayISO();count.hidden=!active.length;count.textContent=active.length;list.innerHTML='';
         if(!a.length)list.innerHTML='<div class="sub-empty">No '+cfg.many+' added yet. Use the form below to add your first one.</div>';
         a.forEach(function(x){
           var row=document.createElement('div');row.className='sub-row '+rowCls(x);row.innerHTML=rowHTML(x,true);
-          var dn=row.querySelector('.sub-done');
-          if(dn)dn.addEventListener('click',function(){
-            if(!synced||busy)return;
-            var want=!x.done;
-            if(!window.confirm(want?'Mark this '+cfg.one+' as DONE?\n\n'+x.subject+' \u2014 '+x.project+'\n\nIt will be saved to Google Sheets and removed from the home page and alerts.':'Mark this '+cfg.one+' as NOT done again?\n\n'+x.subject+' \u2014 '+x.project))return;
-            busy=true;setReady(false);setStatus('Saving to Google Sheets\u2026');
-            call({action:'done',id:x.id,value:want?'1':'0'}).then(function(){return sync()}).then(function(ok){if(ok)setStatus((want?'Marked as done':'Marked as not done')+' and synced \u2713')}).catch(function(e){setReady(false);setStatus('Could not update. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})});
           row.querySelector('.sub-delete').addEventListener('click',function(){
             if(!synced||busy)return;
             if(window.confirm('Delete this '+cfg.one+'? This will permanently delete it from the shared Google Sheet.')){
@@ -751,7 +764,7 @@ body{overflow-x:clip}
               call({action:'delete',id:x.id}).then(function(){return sync()}).then(function(ok){if(ok)setStatus(cfg.Cap+' deleted and synced ✓')}).catch(function(e){setReady(false);setStatus('Delete failed. '+e.message,true)}).finally(function(){busy=false;addBtn.disabled=!synced;render()})}});
           list.appendChild(row)});
         bannerItems.innerHTML='';
-        if(pend.length){banner.classList.add('on');pend.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n);item.innerHTML=entryMain(x);bannerItems.appendChild(item)})}else banner.classList.remove('on');
+        if(pend.length){banner.classList.add('on');pend.forEach(function(x){var n=daysLeft(x.date),item=document.createElement('div');item.className='sb-item u-'+urgency(n)+(cfg.hasDone?' has-tick':'');item.innerHTML=entryMain(x)+(cfg.hasDone?tickBtn():'');var tk=item.querySelector('.sub-done');if(tk)tk.addEventListener('click',function(){toggleDone(x)});bannerItems.appendChild(item)})}else banner.classList.remove('on');
         renderDayEntries(a)}
 
       /* Day popup: everything due on the tapped day */
