@@ -478,6 +478,10 @@ body{overflow-x:clip}
 .brk.solo,.mob .brk.solo{display:block;padding:0;margin:0 0 8px;background:none;border:0;border-radius:0;box-shadow:none}
 .brk.solo>:not(.bchip),.mob .brk.solo>:not(.bchip){display:none}
 .brk.solo .bchip,.mob .brk.solo .bchip{margin:0}
+/* Keep the standalone live-break indicator aligned and sized consistently with the timetable row. */
+.brk.solo .bchip,.mob .brk.solo .bchip{display:flex;align-items:center;justify-content:center;width:100%;min-height:40px;box-sizing:border-box;margin:0;padding:8px 12px;text-align:center}
+.brk.solo .bchip i,.mob .brk.solo .bchip i{margin-top:0}
+.brk.solo .bchip span,.mob .brk.solo .bchip span{overflow-wrap:anywhere;text-align:center}
 </style>
 <div class="wrap">
   <header class="top">
@@ -642,8 +646,11 @@ body{overflow-x:clip}
     brkBtn.title=brkOn?'Breaks on':'Breaks'}
   function tmin(txt){var r=String(txt||'').split(/[\u2013-]/);return r.length==2&&/\d/.test(r[0])?[mins(r[0].trim()),mins(r[1].trim())]:null}
   function sessTimes(se){
-    var td=se.closest('td[data-slot]');if(td)return tmin(SLOTS[+td.dataset.slot]);
-    var t=se.querySelector(':scope>.t');return t?tmin(t.dataset.raw||t.textContent):null}
+    /* Timed sessions include regular classes, guest sessions, and other scheduled items.
+       Prefer the time printed on the session itself; use the desktop slot only as fallback. */
+    var t=se.querySelector(':scope>.t'),own=t?tmin(t.dataset.raw||t.textContent):null;
+    if(own)return own;
+    var td=se.closest('td[data-slot]');return td?tmin(SLOTS[+td.dataset.slot]):null}
   function sessLabel(se){return se.dataset.c||((se.querySelector('.cn')||{}).textContent||'next session').trim()}
   function sessRoom(se){var sp=se.querySelectorAll('.cr span'),l=sp.length?sp[sp.length-1].textContent.trim():'';return l===se.dataset.c?'':l}
   function hm(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
