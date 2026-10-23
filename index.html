@@ -514,6 +514,7 @@ body{overflow-x:clip}
   var DAYS=[];
   panels.forEach(function(p,i){[].forEach.call(p.querySelectorAll('.desk thead th[data-date]'),function(th){
     DAYS.push({t:+th.dataset.date,w:i+1,lbl:th.querySelector('.wd').textContent+' '+th.querySelector('.dm').textContent})})});
+  var autoFlashed=false;
   function focusDay(t,instant){var bh=instant?'auto':'smooth';
     var p=document.getElementById('w'+cur),els=[].slice.call(p.querySelectorAll('[data-date="'+t+'"]'));if(!els.length)return;
     var bar=document.querySelector('.bar'),off=(parseFloat(getComputedStyle(bar).top)||8)+bar.offsetHeight+36;
@@ -525,8 +526,11 @@ body{overflow-x:clip}
       if(sc&&th)sc.scrollTo({left:th.offsetLeft-(sc.clientWidth-th.offsetWidth)/2,behavior:bh});
       window.scrollTo({top:p.querySelector('.whead').getBoundingClientRect().top+window.pageYOffset-off,behavior:bh});
     }
-    els.forEach(function(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')});
-    setTimeout(function(){els.forEach(function(e){e.classList.remove('flash')})},1700);
+    if(!instant||!autoFlashed){
+      if(instant)autoFlashed=true;
+      els.forEach(function(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')});
+      setTimeout(function(){els.forEach(function(e){e.classList.remove('flash')})},1700);
+    }
   }
   function goToday(auto){
     var fi=focusInfo(),t0=fi.t,hit=null,exact=false,i;
