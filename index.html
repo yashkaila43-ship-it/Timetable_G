@@ -407,6 +407,8 @@ body{overflow-x:clip}
 .fr:focus-visible,.flink:focus-visible,.fdone:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
 .pills .pill{transition:opacity .3s,transform .3s var(--spring)}
 .pills .pill.fade{opacity:.25}
+.dir .d tbody tr{transition:opacity .3s}
+.dir .d tbody tr.fade{opacity:.2}
 .sess.dim{pointer-events:none}
 @media print{.fpop,.fbtn{display:none!important}}
 
@@ -630,6 +632,20 @@ body{overflow-x:clip}
       [].forEach.call(document.querySelectorAll('.sess[data-c]:not(.spec)'),function(s){s.classList.toggle('dim',on&&!sel[s.dataset.c])});
       [].forEach.call(document.querySelectorAll('.pills .pill'),function(p){p.classList.toggle('fade',on&&!sel[p.firstChild.textContent.trim()])});
       [].forEach.call(list.children,function(b){b.setAttribute('aria-checked',sel[b.dataset.c]?'true':'false')});
+      /* Directory table: fade unselected courses, show selected/total in the footer */
+      var selTot=0,allTot=0,dnum=document.querySelector('.dir .d tfoot td.num');
+      [].forEach.call(document.querySelectorAll('.dir .d tbody tr'),function(tr){
+        var code=tr.querySelector('.pill').textContent.trim(),n=+(tr.querySelector('td.num').textContent)||0;
+        allTot+=n;if(sel[code])selTot+=n;tr.classList.toggle('fade',on&&!sel[code])});
+      if(dnum)dnum.textContent=on?selTot+'/'+allTot:String(allTot);
+      /* Week headers: selected/total sessions */
+      [].forEach.call(document.querySelectorAll('.panel'),function(p){
+        var ws=p.querySelector('.wsum');if(!ws)return;
+        if(!ws.dataset.total)ws.dataset.total=ws.querySelector('b').textContent.trim();
+        var tot=+ws.dataset.total,s=0;
+        [].forEach.call(p.querySelectorAll('.pills .pill'),function(pl){
+          if(sel[pl.firstChild.textContent.trim()])s+=+pl.querySelector('b').textContent});
+        ws.innerHTML=on?'<b>'+s+'/'+tot+'</b> sessions':'<b>'+tot+'</b> sessions'});
       cnt.textContent=keys.length;cnt.hidden=!on;btn.classList.toggle('on',on);clr.disabled=!on;
       sub.textContent=on?keys.length+' selected':'Tap to show only those';
       btn.setAttribute('aria-label',on?'Filter by subject, '+keys.length+' selected':'Filter by subject');
@@ -778,7 +794,8 @@ body{overflow-x:clip}
           if(dn.length){var tg=document.createElement('button');tg.type='button';tg.className='sb-toggle';tg.setAttribute('aria-expanded',String(doneOpen));tg.textContent=(doneOpen?'Hide':'Show')+' completed ('+dn.length+')';tg.addEventListener('click',function(){doneOpen=!doneOpen;render()});bannerItems.appendChild(tg);
             if(doneOpen)dn.forEach(function(x){var item=document.createElement('div');item.className='sb-item u-done has-tick';item.innerHTML=entryMain(x)+'<button class="sub-done on" type="button" aria-label="Marked done. Tap to undo" title="Done (tap to undo)" '+(!synced||busy?'disabled':'')+'>\u2713</button>';item.querySelector('.sub-done').addEventListener('click',function(){toggleDone(x)});bannerItems.appendChild(item)})}
         }else banner.classList.remove('on');
-        renderDayEntries(a)}
+        renderDayEntries(a);
+        if(window.dgRefocus)window.dgRefocus()}
 
       /* Day popup: everything due on the tapped day */
       var dm=document.createElement('div');dm.className='sub-modal';dm.setAttribute('aria-hidden','true');
@@ -839,16 +856,34 @@ body{overflow-x:clip}
   /* Every time the app opens, jump straight to today's timetable */
   try{if('scrollRestoration' in history)history.scrollRestoration='manual'}catch(e){}
   show(todayWeek()||1);
-  function openAtToday(){goToday(true)}
+  /* Robust "land on today": the jump is repeated while the layout settles (fonts, banner, Sheets sync)
+     and stops the moment the user touches / scrolls, so it can never fight the user. */
+  var settleUntil=0,userMoved=false,settleTimers=[];
+  function openAtToday(){
+    userMoved=false;settleUntil=Date.now()+5000;
+    settleTimers.forEach(clearTimeout);settleTimers=[];
+    goToday(true);
+    [80,250,600,1200,2500].forEach(function(ms){
+      settleTimers.push(setTimeout(function(){if(!userMoved&&!document.hidden)goToday(true)},ms))});
+  }
+  window.dgRefocus=function(){if(!userMoved&&Date.now()<settleUntil&&!document.hidden)goToday(true)};
+  ['touchstart','wheel','keydown','pointerdown'].forEach(function(ev){
+    window.addEventListener(ev,function(){userMoved=true},{passive:true,capture:true})});
   if(document.readyState==='complete')openAtToday();else window.addEventListener('load',openAtToday);
-  /* Coming back to the app after a while (or from the bfcache) also lands on today */
-  var hiddenAt=0;
+  /* Coming back to the app after being inactive also lands on today.
+     Uses both a hidden-timestamp and a heartbeat, because some mobile browsers freeze the page
+     without ever firing a visibilitychange while it is hidden. */
+  var hiddenAt=0,lastBeat=Date.now(),AWAY=5*60*1000;
+  setInterval(function(){lastBeat=Date.now()},5000);
   function onReturn(){openAtToday();if(window.dgShowAlert)window.dgShowAlert()}
+  function checkResume(){
+    var now=Date.now(),away=(hiddenAt&&now-hiddenAt>AWAY)||(now-lastBeat>AWAY);
+    hiddenAt=0;lastBeat=now;
+    if(away)onReturn()}
   document.addEventListener('visibilitychange',function(){
-    if(document.hidden){hiddenAt=Date.now()}
-    else if(hiddenAt&&Date.now()-hiddenAt>5*60*1000){hiddenAt=0;onReturn()}
-  });
-  window.addEventListener('pageshow',function(e){if(e.persisted)onReturn()});
+    if(document.hidden){hiddenAt=Date.now()}else checkResume()});
+  window.addEventListener('focus',checkResume);
+  window.addEventListener('pageshow',function(e){if(e.persisted)onReturn();else checkResume()});
 })();
 </script>
 
