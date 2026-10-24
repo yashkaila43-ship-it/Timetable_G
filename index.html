@@ -459,7 +459,14 @@ body{overflow-x:clip}
 @keyframes brkPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,199,89,.5)}50%{box-shadow:0 0 0 6px rgba(52,199,89,0)}}
 @keyframes brkDot{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.brk,.brk .bd,.bchip i{animation:none!important}}
-@media print{.brk{display:none!important}}
+@media print{.brk,.brkrow{display:none!important}}
+/* desktop break row: same height for every day, ribbons identical in size */
+.grid tr.brkrow th,.grid tr.brkrow td{padding:5px 7px;height:auto;vertical-align:middle;background-clip:padding-box}
+.grid tr.brkrow th.brkslot{padding:0}
+.grid tr.brkrow td .brk,.grid tr.brkrow td .brk.solo{margin:0;width:100%;box-sizing:border-box;min-height:36px}
+.grid tr.brkrow td .brk:not(.solo){align-content:center}
+.grid tr.brkrow td .brk+.brk{margin-top:6px}
+.grid tr.brkrow td:empty{padding-top:0;padding-bottom:0}
 
 /* ---- break cards v2: slim dashed ribbon, clearly different from lecture cards ---- */
 .brk,.mob .brk{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin:2px 0 8px;padding:7px 12px 7px 10px;border-radius:18px;
@@ -545,7 +552,9 @@ body{overflow-x:clip}
       if(on&&changed&&animate){p.classList.add(dir)}
       var b=p.querySelectorAll('.wbtn');if(b.length){b[0].disabled=w<=1;b[1].disabled=w>=N}});
     if(animate){try{history.replaceState(null,'','#w'+w)}catch(e){}}
-    if(animate){var tb=document.querySelector('.tabs');var top=tb.getBoundingClientRect().bottom;if(top<0)window.scrollTo({top:0,behavior:'smooth'})}
+    if(animate&&changed){var np=document.getElementById('w'+w),wh=np&&np.querySelector('.whead'),bar=document.querySelector('.bar');
+      if(wh&&bar){var off=(parseFloat(getComputedStyle(bar).top)||8)+bar.offsetHeight+36;
+        window.scrollTo({top:Math.max(0,wh.getBoundingClientRect().top+window.pageYOffset-off),behavior:'smooth'})}}
   }
   tabs.forEach(function(t){
     t.addEventListener('click',function(){if(window.innerWidth<900)return;show(+t.dataset.w,true)});
@@ -682,24 +691,37 @@ body{overflow-x:clip}
     return d}
   function visibleSess(root){return [].filter.call(root.querySelectorAll('.sess'),function(se){return !se.classList.contains('dim')}).map(function(se){var t=sessTimes(se);return t?{el:se,s:t[0],e:t[1]}:null}).filter(Boolean)}
   function brkBuild(){
-    [].forEach.call(document.querySelectorAll('.brk'),function(n){n.remove()});
+    [].forEach.call(document.querySelectorAll('.brk,tr.brkrow'),function(n){n.remove()});
     var fi=focusInfo(),nw=new Date(),nm=nw.getHours()*60+nw.getMinutes();
     /* the live "Break now" indicator is independent of the Breaks button: when the button is off, only today's current gap is drawn (chip only) */
-    function put(g,date,mob){
+    function put(g,date,mob,rows){
       var live=!fi.tom&&+date===fi.t&&nm>g.from&&nm<g.to;
       if(!brkOn&&!live)return;
       var c=mkBrk(g,date,mob);if(!brkOn)c.classList.add('solo');
-      g.after.el.insertAdjacentElement('afterend',c)}
+      if(mob){g.after.el.insertAdjacentElement('afterend',c);return}
+      /* desktop: the break gets its own table row under the session row, one cell per day, so every column stays aligned */
+      var td=g.after.el.closest('td'),tr=td&&td.parentNode;if(!tr)return;
+      var r=rows.find(function(x){return x.tr===tr});if(!r){r={tr:tr,cells:{}};rows.push(r)}
+      (r.cells[td.cellIndex]=r.cells[td.cellIndex]||[]).push(c)}
     panels.forEach(function(p){
       /* phone cards */
       [].forEach.call(p.querySelectorAll('.mob .day[data-date]'),function(day){
         gapsFor(visibleSess(day)).forEach(function(g){put(g,day.dataset.date,true)})});
+      var rows=[];
       /* desktop grid: group the cells of one day, put each gap under the session that ends it */
       var byDate={};
       [].forEach.call(p.querySelectorAll('.desk tbody td[data-date]'),function(td){(byDate[td.dataset.date]=byDate[td.dataset.date]||[]).push(td)});
       Object.keys(byDate).forEach(function(k){
         var list=[];byDate[k].forEach(function(td){list=list.concat(visibleSess(td))});
-        gapsFor(list).forEach(function(g){put(g,k,false)})})});
+        gapsFor(list).forEach(function(g){put(g,k,false,rows)})});
+      rows.forEach(function(r){
+        var n=r.tr.children.length,br=document.createElement('tr');br.className='brkrow';
+        var h=document.createElement('th');h.className='slot brkslot';h.setAttribute('aria-hidden','true');br.appendChild(h);
+        for(var i=1;i<n;i++){var cell=document.createElement('td'),src=r.tr.children[i];
+          cell.className=(src.className||'').replace('today-col','today-col');
+          if(src.dataset.date)cell.dataset.date=src.dataset.date;
+          (r.cells[i]||[]).forEach(function(c){cell.appendChild(c)});br.appendChild(cell)}
+        r.tr.insertAdjacentElement('afterend',br)})});
     brkLive()}
   /* live: today's current gap becomes "Break now · N min left until NEXT" (never touches other days) */
   function brkLive(){
