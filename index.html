@@ -460,6 +460,16 @@ body{overflow-x:clip}
 @keyframes brkDot{0%,100%{opacity:1}50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.brk,.brk .bd,.bchip i{animation:none!important}}
 @media print{.brk,.brkrow{display:none!important}}
+/* performance: no entry animation on every rebuild, and a compositor-only pulse (no box-shadow repaint over blurred glass) */
+.brk,.mob .brk{animation:none;transition:none}
+.brk-anim .brk{animation:brkIn .3s ease-out both}
+.brk .bd,.mob .brk .bd{position:relative}
+.brk.live .bd{animation:none}
+.brk.live .bd::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:2px solid var(--brk);opacity:0;animation:brkRing 2.2s ease-out infinite;will-change:transform,opacity;pointer-events:none}
+@keyframes brkRing{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.7);opacity:0}}
+.bchip i{will-change:opacity}
+.brk{contain:layout paint}
+.brk.live{contain:layout}
 /* desktop break row: same height for every day, ribbons identical in size */
 .grid tr.brkrow th,.grid tr.brkrow td{padding:5px 7px;height:auto;vertical-align:middle;background-clip:padding-box}
 .grid tr.brkrow th.brkslot{padding:0}
@@ -690,7 +700,11 @@ body{overflow-x:clip}
     d.appendChild(t);d.appendChild(cn);d.appendChild(cf);d.appendChild(bd);
     return d}
   function visibleSess(root){return [].filter.call(root.querySelectorAll('.sess'),function(se){return !se.classList.contains('dim')}).map(function(se){var t=sessTimes(se);return t?{el:se,s:t[0],e:t[1]}:null}).filter(Boolean)}
-  function brkBuild(){
+  var lastSig='';
+  function brkBuild(force){
+    var sg=(brkOn?1:0)+'|'+focusInfo().t+'|'+(new Date().getHours()*60+new Date().getMinutes())+'|'+[].filter.call(document.querySelectorAll('.sess.dim'),function(){return true}).length;
+    if(force!==true&&sg===lastSig&&document.querySelector('.brk'))return;
+    lastSig=sg;
     [].forEach.call(document.querySelectorAll('.brk,tr.brkrow'),function(n){n.remove()});
     var fi=focusInfo(),nw=new Date(),nm=nw.getHours()*60+nw.getMinutes();
     /* the live "Break now" indicator is independent of the Breaks button: when the button is off, only today's current gap is drawn (chip only) */
@@ -736,12 +750,12 @@ body{overflow-x:clip}
       var dot=document.createElement('i'),tx=document.createElement('span');
       tx.textContent='Break now \u00b7 '+durLong(t-nm)+' left until '+c.dataset.next;
       chip.appendChild(dot);chip.appendChild(tx);c.appendChild(chip)})}
-  window.dgBreaks=brkBuild;
+  window.dgBreaks=function(){brkBuild(true)};
   if(brkBtn)brkBtn.addEventListener('click',function(){
     brkOn=!brkOn;try{localStorage.setItem(BRK_KEY,brkOn?'1':'0')}catch(e){}
-    brkSync();brkBuild();say(brkOn?'Breaks shown between sessions':'Breaks hidden')});
+    var de=document.documentElement;de.classList.add('brk-anim');brkSync();brkBuild();setTimeout(function(){de.classList.remove('brk-anim')},600);say(brkOn?'Breaks shown between sessions':'Breaks hidden')});
   brkSync();
-  function mark(){
+  function mark(noBrk){
     updDone();
     var now=new Date(),fi=focusInfo(),t0=fi.t,nm=now.getHours()*60+now.getMinutes();
     tdot.textContent=new Date(t0).getDate();
@@ -755,9 +769,13 @@ body{overflow-x:clip}
       else{e.classList.add('today');
         [].forEach.call(e.querySelectorAll('.sess .t'),function(t){var r=(t.dataset.raw||'').split('–');if(!fi.tom&&r.length==2&&nm>=mins(r[0])&&nm<=mins(r[1]))t.parentNode.classList.add('live')})}
     });
-    brkBuild();
+    if(noBrk!==true)brkBuild();
   }
-  mark();setInterval(mark,60000);window.addEventListener('resize',mark);
+  var rzT=0;
+  mark();setInterval(function(){if(!document.hidden)mark()},60000);
+  /* resize fires constantly on phones (address bar) - debounce it and never rebuild breaks for it */
+  window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(function(){mark(true)},250)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)mark()});
   var hdr=document.querySelector('.bar');
   var pb=hdr.querySelector('.pb'),sen=document.createElement('div'),tk=0,RAMP=36;
   sen.style.cssText='height:0;margin:0;padding:0;pointer-events:none';hdr.parentNode.insertBefore(sen,hdr);
