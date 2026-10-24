@@ -465,8 +465,6 @@ body{overflow-x:clip}
 .brk-anim .brk{animation:brkIn .3s ease-out both}
 .brk .bd,.mob .brk .bd{position:relative}
 .brk.live .bd{animation:none}
-.brk.live .bd::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:2px solid var(--brk);opacity:0;animation:brkRing 2.2s ease-out infinite;will-change:transform,opacity;pointer-events:none}
-@keyframes brkRing{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.7);opacity:0}}
 .bchip i{will-change:opacity}
 .brk{contain:layout paint}
 .brk.live{contain:layout}
