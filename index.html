@@ -513,6 +513,10 @@ header.top>div{min-width:0}
   .vt button{width:42px;height:36px}
   .vt button svg{width:20px;height:20px}
 }
+/* The page has a rule "header.top>div{flex:1 1 auto;min-width:0}" that was stretching and squashing the toggle: pin it */
+header.top>.vt{flex:0 0 auto;min-width:max-content;width:auto}
+.vt button{flex:0 0 auto}
+@media (max-width:560px){header.top h1{font-size:26px;line-height:1.1}}
 @media print{.vt{display:none!important}}
 
 /* Attendance view (in-page, replaces the timetable while selected) */
