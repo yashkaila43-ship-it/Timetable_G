@@ -508,6 +508,16 @@ body{overflow-x:clip}
 @media (min-width:900px){.bar .tab{padding:10px 4px;font-size:16px;font-weight:700;overflow:hidden;justify-content:center}.bar .tab small.dl{font-size:11.5px;font-weight:500;white-space:nowrap;margin-top:2px;letter-spacing:-.02em}.bar .tab[aria-selected="true"]{box-shadow:0 2px 10px rgba(0,122,255,.4)}}
 @media (max-width:899px){.tab{font-size:17px;padding:13px 4px}#todayBtn .tdot{font-size:20px}}
 </style>
+<style>
+/* desktop week bar: equal left/right spacing, no peeking neighbour tab */
+@media (min-width:900px){
+  .bar .tabs{gap:5px;padding:5px;scroll-padding-inline:5px}
+  .bar .tab{flex:0 0 calc((100% - 5px*6)/7)}
+}
+@media (min-width:1100px){
+  .bar .tab{flex:0 0 calc((100% - 5px*8)/9)}
+}
+</style>
 <div class="wrap">
   <header class="top">
     <div>
@@ -564,7 +574,7 @@ body{overflow-x:clip}
   function show(w,animate){
     w=Math.max(1,Math.min(N,w));var dir=w>=cur?'enter-r':'enter-l';var changed=w!==cur;cur=w;
     tabs.forEach(function(t){var on=t.dataset.w==w;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;
-      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,tc.scrollLeft+t.getBoundingClientRect().left-tc.getBoundingClientRect().left-tc.clientLeft-4),behavior:animate?'smooth':'auto'})}
+      if(on){var tc=t.parentNode;if(tc&&tc.scrollTo)tc.scrollTo({left:Math.max(0,tc.scrollLeft+t.getBoundingClientRect().left-tc.getBoundingClientRect().left-tc.clientLeft-5),behavior:animate?'smooth':'auto'})}
       });
     panels.forEach(function(p){var on=p.id==='w'+w;p.hidden=!on;p.classList.remove('enter-r','enter-l');
       if(on&&changed&&animate){p.classList.add(dir)}
