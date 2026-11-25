@@ -518,6 +518,18 @@ body{overflow-x:clip}
   .bar .tab{flex:0 0 calc((100% - 5px*8)/9)}
 }
 </style>
+<style>
+/* mobile top bar: compact round buttons so the week pill gets room */
+@media (max-width:899px){
+  .bar{gap:6px}
+  .bar .fbtn,#todayBtn{width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important;align-self:center}
+  .bar .fbtn svg{width:19px;height:19px}
+  .bar .tabs{flex:1 1 0;min-width:0;height:42px;padding:4px;align-items:stretch}
+  .bar .tab{padding:0 6px;font-size:16px;font-weight:700;align-items:center;justify-content:center}
+  #todayBtn .tdot{font-size:18px}
+  .fcount{min-width:18px;height:18px;font-size:11px;top:-5px;right:-5px}
+}
+</style>
 <div class="wrap">
   <header class="top">
     <div>
